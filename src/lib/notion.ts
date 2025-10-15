@@ -53,7 +53,7 @@ async function getDatabasePropertyNames(databaseId: string): Promise<{ [key: str
   }
 
   try {
-    const response = await notion.databases.retrieve({
+    await notion.databases.retrieve({
       database_id: databaseId,
     });
 
@@ -123,26 +123,44 @@ async function getDataSourceId(databaseId: string): Promise<string> {
 }
 
 
-function getPropertyValue(property: PageObjectResponse['properties'][string]): any {
-  if (!property) return null;
-
+function getStringPropertyValue(property: PageObjectResponse['properties'][string]): string {
+  if (!property) return '';
+  
   switch (property.type) {
     case 'title':
       return property.title?.map((t) => t.plain_text).join('') || '';
     case 'rich_text':
       return property.rich_text?.map((t) => t.plain_text).join('') || '';
-    case 'multi_select':
-      return property.multi_select?.map((s) => s.name) || [];
     case 'select':
-      return property.select?.name || null;
-    case 'date':
-      return property.date;
+      return property.select?.name || '';
     case 'files':
       if (property.files && property.files.length > 0) {
         const file = property.files[0];
         return 'external' in file ? file.external.url : file.file.url;
       }
-      return null;
+      return '';
+    default:
+      return '';
+  }
+}
+
+function getStringArrayPropertyValue(property: PageObjectResponse['properties'][string]): string[] {
+  if (!property) return [];
+  
+  switch (property.type) {
+    case 'multi_select':
+      return property.multi_select?.map((s) => s.name) || [];
+    default:
+      return [];
+  }
+}
+
+function getDatePropertyValue(property: PageObjectResponse['properties'][string]): { start: string } | null {
+  if (!property) return null;
+  
+  switch (property.type) {
+    case 'date':
+      return property.date;
     default:
       return null;
   }
@@ -183,23 +201,23 @@ export async function getPosts(): Promise<Post[]> {
     const posts = allPages.map((page) => {
       const props = page.properties;
 
-      const title = getPropertyValue(props.Title || props.Name || props.title);
-      const slug = getPropertyValue(props.Slug || props.slug);
-      const description = getPropertyValue(props.Description || props.description);
-      const date = getPropertyValue(props.Date || props.date);
-      const tags = getPropertyValue(props.Tags || props.tags);
-      const category = getPropertyValue(props.Category || props.category);
-      const thumbnail = getPropertyValue(props.Thumbnail || props.thumbnail);
+      const title = getStringPropertyValue(props.Title || props.Name || props.title);
+      const slug = getStringPropertyValue(props.Slug || props.slug);
+      const description = getStringPropertyValue(props.Description || props.description);
+      const date = getDatePropertyValue(props.Date || props.date);
+      const tags = getStringArrayPropertyValue(props.Tags || props.tags);
+      const category = getStringPropertyValue(props.Category || props.category);
+      const thumbnail = getStringPropertyValue(props.Thumbnail || props.thumbnail);
 
       return {
         id: page.id,
-        title: title || '',
-        slug: slug || '',
-        description: description || '',
+        title: title,
+        slug: slug,
+        description: description,
         date: date?.start || page.created_time,
-        tags: Array.isArray(tags) ? tags : [],
-        category: category || '',
-        thumbnail: thumbnail || '',
+        tags: tags,
+        category: category,
+        thumbnail: thumbnail,
       };
     });
 
@@ -291,22 +309,22 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     const page = response.results[0] as PageObjectResponse;
     const props = page.properties;
 
-    const title = getPropertyValue(props.Title || props.Name || props.title);
-    const description = getPropertyValue(props.Description || props.description);
-    const date = getPropertyValue(props.Date || props.date);
-    const tags = getPropertyValue(props.Tags || props.tags);
-    const category = getPropertyValue(props.Category || props.category);
-    const thumbnail = getPropertyValue(props.Thumbnail || props.thumbnail);
+    const title = getStringPropertyValue(props.Title || props.Name || props.title);
+    const description = getStringPropertyValue(props.Description || props.description);
+    const date = getDatePropertyValue(props.Date || props.date);
+    const tags = getStringArrayPropertyValue(props.Tags || props.tags);
+    const category = getStringPropertyValue(props.Category || props.category);
+    const thumbnail = getStringPropertyValue(props.Thumbnail || props.thumbnail);
 
     return {
       id: page.id,
-      title: title || '',
+      title: title,
       slug: slug,
-      description: description || '',
+      description: description,
       date: date?.start || page.created_time,
-      tags: Array.isArray(tags) ? tags : [],
-      category: category || '',
-      thumbnail: thumbnail || '',
+      tags: tags,
+      category: category,
+      thumbnail: thumbnail,
     };
   } catch (error: unknown) {
     if (isNotionClientError(error)) {

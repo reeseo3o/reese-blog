@@ -4,6 +4,7 @@ import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import ThemeProvider from '@/components/providers/ThemeProvider';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -75,8 +76,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    // Google Search Console 인증 코드 (필요시 추가)
-    // google: 'your-google-verification-code',
+    google: process.env.GOOGLE_SITE_VERIFICATION,
     // 네이버 웹마스터 도구 인증 코드 (필요시 추가)
     // other: {
     //   'naver-site-verification': 'your-naver-verification-code',
@@ -92,6 +92,7 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ''} />
         <ThemeProvider>
           <Header />
           <main className="min-h-screen pt-20">{children}</main>
