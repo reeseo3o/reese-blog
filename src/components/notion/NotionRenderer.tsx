@@ -5,6 +5,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useEffect, useState, useRef } from 'react';
 import mermaid from 'mermaid';
+import Image from 'next/image';
 
 interface NotionRendererProps {
   blocks: NotionBlockType[];
@@ -130,10 +131,13 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       return (
         <figure className="my-6">
           {src && (
-            <img
+            <Image
               src={src}
               alt={caption || ''}
+              width={800}
+              height={600}
               className="rounded-lg mx-auto max-w-full h-auto max-h-[70vh] object-contain"
+              unoptimized
             />
           )}
           {caption && (

@@ -66,7 +66,7 @@ export default function BlogClient({ tags, initialSelectedTag }: BlogClientProps
   useEffect(() => {
     pageRef.current = 1;
     fetchPosts(1, true, selectedTag);
-  }, []);
+  }, [fetchPosts, selectedTag]);
 
   useEffect(() => {
     pageRef.current = 1;

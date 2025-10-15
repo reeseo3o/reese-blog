@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
 const navigation = [
   { name: 'About', href: '/about' },
@@ -13,10 +14,10 @@ const navigation = [
 
 export default function Header() {
   const pathname = usePathname();
-  const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
-  const [mounted, setMounted] = React.useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [mounted, setMounted] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
 
     const currentTheme = document.documentElement.getAttribute('data-theme') as 'light' | 'dark';
