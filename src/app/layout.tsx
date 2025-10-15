@@ -48,6 +48,7 @@ export const metadata: Metadata = {
     images: [
       {
         url: '/images/og-image.png',
+        secureUrl: new URL('/images/og-image.png', siteUrl).toString(),
         width: 1200,
         height: 630,
         alt: 'Reese - Developer & Creator',
@@ -63,6 +64,7 @@ export const metadata: Metadata = {
     title: 'Reese - Developer & Creator',
     description: '개발자 Reese의 블로그와 프로젝트 포트폴리오',
     creator: '@reese',
+    images: ['/images/og-image.png'],
   },
   robots: {
     index: true,
