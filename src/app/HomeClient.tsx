@@ -67,7 +67,7 @@ export default function HomeClient({ posts, projects }: HomeClientProps) {
               </span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-foreground group-hover:w-full transition-all duration-300"></span>
             </Link>
-            <Link
+            {/* <Link
               href="/projects"
               className="group relative font-medium text-base transition-all duration-300"
             >
@@ -88,7 +88,7 @@ export default function HomeClient({ posts, projects }: HomeClientProps) {
                 </svg>
               </span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-foreground group-hover:w-full transition-all duration-300"></span>
-            </Link>
+            </Link> */}
           </motion.div>
         </motion.div>
       </section>
@@ -128,7 +128,7 @@ export default function HomeClient({ posts, projects }: HomeClientProps) {
         </div>
       </section>
 
-      <section className="py-16 mb-20">
+      {/* <section className="py-16 mb-20">
         <div className="mx-auto px-6 md:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -161,7 +161,7 @@ export default function HomeClient({ posts, projects }: HomeClientProps) {
             )}
           </motion.div>
         </div>
-      </section>
+      </section> */}
 
       <section className="py-16 mb-20">
         <div className="max-w-4xl mx-auto px-6 md:px-12 text-center">

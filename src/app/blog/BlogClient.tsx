@@ -18,9 +18,11 @@ export default function BlogClient({ tags, initialSelectedTag }: BlogClientProps
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedTag = searchParams.get('tag') || initialSelectedTag || null;
+  
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -33,6 +35,8 @@ export default function BlogClient({ tags, initialSelectedTag }: BlogClientProps
       try {
         if (isInitial) {
           setLoading(true);
+        } else {
+          setLoadingMore(true);
         }
 
         const url = tag
@@ -57,24 +61,21 @@ export default function BlogClient({ tags, initialSelectedTag }: BlogClientProps
       } finally {
         if (isInitial) {
           setLoading(false);
+        } else {
+          setLoadingMore(false);
         }
       }
     },
-    [],
+    [selectedTag],
   );
 
   useEffect(() => {
     pageRef.current = 1;
     fetchPosts(1, true, selectedTag);
-  }, [fetchPosts, selectedTag]);
+  }, [fetchPosts]);
 
   useEffect(() => {
-    pageRef.current = 1;
-    fetchPosts(1, true, selectedTag);
-  }, [selectedTag, fetchPosts]);
-
-  useEffect(() => {
-    if (!hasMore || loading) return;
+    if (!hasMore || loading || loadingMore) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -96,7 +97,7 @@ export default function BlogClient({ tags, initialSelectedTag }: BlogClientProps
         observer.unobserve(currentTarget);
       }
     };
-  }, [hasMore, loading, selectedTag, fetchPosts]);
+  }, [hasMore, loading, loadingMore, fetchPosts]);
 
   const handleTagSelect = (tag: string | null) => {
     if (tag) {
@@ -228,6 +229,15 @@ export default function BlogClient({ tags, initialSelectedTag }: BlogClientProps
               </motion.div>
 
               {hasMore && <div ref={observerTarget} className="h-20" aria-hidden="true" />}
+
+              {loadingMore && hasMore && (
+                <div className="flex justify-center items-center py-8">
+                  <div className="flex items-center space-x-2 text-muted">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-accent border-t-transparent"></div>
+                    <span className="text-sm">더 많은 포스트를 불러오는 중...</span>
+                  </div>
+                </div>
+              )}
 
               {!hasMore && posts.length > PAGE_SIZE && (
                 <div className="text-center py-8 text-muted">

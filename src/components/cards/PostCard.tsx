@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import SafeImage from '@/components/SafeImage';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Post } from '@/lib/types';
@@ -38,11 +38,13 @@ export default function PostCard({ post }: PostCardProps) {
         >
           {post.thumbnail && (
             <div className="relative w-full h-48 overflow-hidden bg-muted/10">
-              <Image
+              <SafeImage
                 src={post.thumbnail}
                 alt={post.title}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
+                maxRetries={2}
+                retryDelayMs={800}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>

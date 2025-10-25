@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 const navigation = [
   { name: 'About', href: '/about' },
   { name: 'Blog', href: '/blog' },
-  { name: 'Projects', href: '/projects' },
+  // { name: 'Projects', href: '/projects' }, // temporarily hidden
 ];
 
 export default function Header() {
