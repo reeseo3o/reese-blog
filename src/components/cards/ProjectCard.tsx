@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import SafeImage from '@/components/SafeImage';
 import { motion } from 'framer-motion';
 import { Project } from '@/lib/types';
 
@@ -23,11 +24,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         >
           {project.thumbnail && (
             <div className="relative w-full h-56 bg-muted/10 overflow-hidden">
-              <Image
+              <SafeImage
                 src={project.thumbnail}
                 alt={project.title}
                 fill
                 className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
+                maxRetries={2}
+                retryDelayMs={800}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
