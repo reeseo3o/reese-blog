@@ -6,18 +6,17 @@ import { useMemo } from 'react';
 export default function Comments() {
   const config = useMemo(
     () => ({
-      repo: process.env.NEXT_PUBLIC_GISCUS_REPO,
+      repo: 'reeseo3o/reese-blog',
       repoId: process.env.NEXT_PUBLIC_GISCUS_REPO_ID,
-      category: process.env.NEXT_PUBLIC_GISCUS_CATEGORY,
+      category: 'Comments',
       categoryId: process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID,
-      mapping: process.env.NEXT_PUBLIC_GISCUS_MAPPING || 'pathname',
-      reactionsEnabled: process.env.NEXT_PUBLIC_GISCUS_REACTIONS_ENABLED || '1',
-      emitMetadata: process.env.NEXT_PUBLIC_GISCUS_EMIT_METADATA || '0',
-      inputPosition:
-        (process.env.NEXT_PUBLIC_GISCUS_INPUT_POSITION as 'top' | 'bottom') || 'bottom',
-      lang: process.env.NEXT_PUBLIC_GISCUS_LANG || 'ko',
-      loading: process.env.NEXT_PUBLIC_GISCUS_LOADING || 'lazy',
-      theme: process.env.NEXT_PUBLIC_GISCUS_THEME || 'preferred_color_scheme',
+      mapping: 'pathname',
+      reactionsEnabled: '1',
+      emitMetadata: '0',
+      inputPosition: 'bottom' as 'top' | 'bottom',
+      lang: 'ko',
+      loading: 'lazy' as 'lazy' | 'eager',
+      theme: 'noborder_light',
     }),
     [],
   );
