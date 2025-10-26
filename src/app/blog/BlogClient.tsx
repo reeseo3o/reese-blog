@@ -11,24 +11,42 @@ const PAGE_SIZE = 9;
 
 interface BlogClientProps {
   tags: string[];
-  initialSelectedTag?: string | null;
+  initialPosts?: Post[];
+  initialHasMore?: boolean;
 }
 
-export default function BlogClient({ tags, initialSelectedTag }: BlogClientProps) {
+export default function BlogClient({
+  tags,
+  initialPosts = [],
+  initialHasMore = true,
+}: BlogClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedTag = searchParams.get('tag') || initialSelectedTag || null;
-  
+  const selectedTag = searchParams.get('tag') || null;
 
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(initialHasMore);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   const pageRef = useRef(1);
+  const initialLoadRef = useRef(false);
 
   const observerTarget = useRef<HTMLDivElement>(null);
+
+  // 모바일에서 사이드바가 열릴 때 body 스크롤 방지
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // 컴포넌트 언마운트 시 스타일 초기화
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isSidebarOpen]);
 
   const fetchPosts = useCallback(
     async (pageNum: number, isInitial: boolean = false, tag: string | null = null) => {
@@ -66,13 +84,25 @@ export default function BlogClient({ tags, initialSelectedTag }: BlogClientProps
         }
       }
     },
-    [selectedTag],
+    [],
   );
 
+  // 태그가 변경되었을 때만 fetch
   useEffect(() => {
+    // 초기 로드 체크
+    if (!initialLoadRef.current) {
+      initialLoadRef.current = true;
+      
+      // 초기 상태 (태그 없음)이고 initialPosts가 있으면 skip
+      if (initialPosts.length > 0 && !selectedTag) {
+        return;
+      }
+    }
+    
+    // 태그가 변경되었거나 데이터가 없으면 fetch
     pageRef.current = 1;
     fetchPosts(1, true, selectedTag);
-  }, [fetchPosts]);
+  }, [selectedTag, initialPosts.length, fetchPosts]);
 
   useEffect(() => {
     if (!hasMore || loading || loadingMore) return;
@@ -141,14 +171,17 @@ export default function BlogClient({ tags, initialSelectedTag }: BlogClientProps
             fixed lg:sticky top-0 left-0 h-screen lg:h-auto
             w-64 lg:w-72 transform transition-transform duration-300 ease-in-out
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-            z-40 overflow-y-auto
+            z-40 
             pt-32 lg:pt-24 pb-8 px-6
+            bg-background/95 backdrop-blur-sm lg:bg-transparent
+            lg:overflow-y-auto overflow-y-visible
           `}
         >
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
+            className="h-full lg:h-auto"
           >
             <h2 className="text-lg font-bold mb-6">태그 필터</h2>
 

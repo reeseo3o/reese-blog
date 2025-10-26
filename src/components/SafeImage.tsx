@@ -23,19 +23,28 @@ export default function SafeImage({
   const resolvedFallback = useMemo(() => fallbackSrc ?? '/images/og-image.png', [fallbackSrc]);
 
   const scheduleRetry = useCallback(() => {
+    // 재시도 횟수 초과 시 fallback
     if (retryCountRef.current >= maxRetries) {
       setCurrentSrc(resolvedFallback);
       return;
     }
+    
     retryCountRef.current += 1;
+    
+    // URL에 타임스탬프 추가하여 재시도
     const original = typeof src === 'string' ? src : String(src);
-    const url = new URL(original, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
-    url.searchParams.set('_t', Date.now().toString());
-    const next = url.toString();
+    try {
+      const url = new URL(original, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
+      url.searchParams.set('_t', Date.now().toString());
+      const next = url.toString();
 
-    setTimeout(() => {
-      setCurrentSrc(next);
-    }, retryDelayMs);
+      setTimeout(() => {
+        setCurrentSrc(next);
+      }, retryDelayMs);
+    } catch {
+      // URL 파싱 실패 시 즉시 fallback
+      setCurrentSrc(resolvedFallback);
+    }
   }, [maxRetries, retryDelayMs, resolvedFallback, src]);
 
   return (
