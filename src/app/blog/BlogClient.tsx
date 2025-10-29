@@ -129,6 +129,18 @@ export default function BlogClient({
     };
   }, [hasMore, loading, loadingMore, fetchPosts]);
 
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isSidebarOpen]);
+
   const handleTagSelect = (tag: string | null) => {
     if (tag) {
       router.push(`/blog?tag=${encodeURIComponent(tag)}`);
@@ -183,16 +195,16 @@ export default function BlogClient({
             transition={{ duration: 0.6 }}
             className="h-full lg:h-auto"
           >
-            <h2 className="text-lg font-bold mb-6">태그 필터</h2>
+            <h2 className="text-lg font-bold mb-6">Tags</h2>
 
             {tags.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-[60vh] lg:max-h-[70vh] overflow-y-auto pr-2">
                 <button
                   onClick={() => {
                     handleTagSelect(null);
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
                     !selectedTag ? 'bg-accent text-white' : 'hover:bg-accent/10'
                   }`}
                 >
@@ -205,7 +217,7 @@ export default function BlogClient({
                       handleTagSelect(tag);
                       setIsSidebarOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
                       selectedTag === tag ? 'bg-accent text-white' : 'hover:bg-accent/10'
                     }`}
                   >
