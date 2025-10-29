@@ -1,5 +1,5 @@
 {
-  "name": "reese-blog-v2",
+  "name": "reese-blog",
   "version": "0.1.0",
   "private": true,
   "description": "프로덕트를 설계하고 구현하는 개발자 블로그",
@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/reese-blog-v2.git"
+    "url": "https://github.com/reeseo3o/reese-blog.git"
   },
   "keywords": ["blog", "nextjs", "notion", "typescript", "tailwindcss"],
   "scripts": {

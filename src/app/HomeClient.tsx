@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import PostCard from '@/components/cards/PostCard';
-import ProjectCard from '@/components/cards/ProjectCard';
+// import ProjectCard from '@/components/cards/ProjectCard';
 import OrbBackground from '@/components/three/Background';
 import { Post, Project } from '@/lib/types';
 
@@ -175,7 +175,7 @@ export default function HomeClient({ posts, projects }: HomeClientProps) {
 
             <div className="flex items-center justify-center gap-4 flex-wrap">
               <a
-                href="https://github.com"
+                href="https://github.com/reeseo3o"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center gap-2 px-5 py-2.5 glass rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -195,7 +195,7 @@ export default function HomeClient({ posts, projects }: HomeClientProps) {
               </a>
 
               <a
-                href="https://twitter.com"
+                href="https://x.com/nunnu099"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group relative flex items-center gap-2 px-5 py-2.5 glass rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 overflow-visible"
@@ -211,7 +211,7 @@ export default function HomeClient({ posts, projects }: HomeClientProps) {
               </a>
 
               <a
-                href="mailto:hello@example.com"
+                href="mailto:notyaeji@gmail.com"
                 className="group flex items-center gap-2 px-5 py-2.5 glass rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105"
               >
                 <svg
