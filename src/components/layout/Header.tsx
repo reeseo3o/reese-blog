@@ -87,7 +87,7 @@ export default function Header() {
 
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg glass hover:glass-strong transition-all duration-300 group"
+              className="p-2 rounded-lg glass hover:glass-strong transition-all duration-300 group cursor-pointer"
               aria-label="테마 전환"
             >
               {theme === 'light' ? (
