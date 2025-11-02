@@ -45,6 +45,7 @@ export default function PostCard({ post }: PostCardProps) {
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
                 maxRetries={2}
                 retryDelayMs={800}
+                unoptimized
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
