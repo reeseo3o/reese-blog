@@ -5,6 +5,7 @@ import SafeImage from '@/components/SafeImage';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Post } from '@/lib/types';
+import { useState } from 'react';
 
 interface PostCardProps {
   post: Post;
@@ -12,6 +13,7 @@ interface PostCardProps {
 
 export default function PostCard({ post }: PostCardProps) {
   const router = useRouter();
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
   const formattedDate = new Date(post.date).toLocaleDateString('ko-KR', {
     year: 'numeric',
@@ -42,10 +44,12 @@ export default function PostCard({ post }: PostCardProps) {
                 src={post.thumbnail}
                 alt={post.title}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                className={`object-cover transition-all duration-500 group-hover:scale-110 ${
+                  isImageLoading ? 'opacity-0' : 'opacity-100'
+                }`}
                 maxRetries={2}
                 retryDelayMs={800}
-                unoptimized
+                onLoadingStateChange={setIsImageLoading}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>

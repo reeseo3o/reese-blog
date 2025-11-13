@@ -2,7 +2,7 @@
 
 import { NotionBlock as NotionBlockType } from '@/lib/types';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useEffect, useState, useRef } from 'react';
 import mermaid from 'mermaid';
 import SafeImage from '@/components/SafeImage';
@@ -188,7 +188,7 @@ function CodeBlock({
       </div>
       <SyntaxHighlighter
         language={language}
-        style={isDark ? oneDark : oneLight}
+        style={oneDark}
         customStyle={{
           margin: 0,
           borderRadius: 0,
