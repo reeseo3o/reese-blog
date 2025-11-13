@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: '개발 경험과 학습한 내용을 기록합니다',
 };
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 export default async function BlogPage() {
   const tags = await getAllTags();
