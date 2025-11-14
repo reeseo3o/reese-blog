@@ -2,7 +2,7 @@ import { getPosts } from '@/lib/notion';
 import HomeClient from '@/app/HomeClient';
 import type { Metadata } from 'next';
 
-export const revalidate = 86400;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Reese-log',
