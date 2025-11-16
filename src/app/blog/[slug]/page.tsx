@@ -8,7 +8,7 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export const revalidate = 86400;
+export const revalidate = 1800;
 
 export const dynamicParams = false;
 

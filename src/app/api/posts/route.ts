@@ -2,12 +2,11 @@ import { NextResponse } from 'next/server';
 import { getPostsPaginated } from '@/lib/notion';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1', 10);
+    const page = parseInt(searchParams.get('page') || '1', 10); 
     const pageSize = parseInt(searchParams.get('pageSize') || '9', 10);
     const tag = searchParams.get('tag') || undefined;
 
