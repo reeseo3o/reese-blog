@@ -337,24 +337,44 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
   }
 }
 
-export async function getPageBlocks(pageId: string): Promise<NotionBlockType[]> {
-  try {
-    const blocks: NotionBlockType[] = [];
-    let cursor = undefined;
+async function getBlocksRecursively(blockId: string): Promise<NotionBlockType[]> {
+  const blocks: NotionBlockType[] = [];
+  let cursor: string | undefined = undefined;
 
-    while (true) {
-      const response = await notion.blocks.children.list({
-        block_id: pageId,
-        start_cursor: cursor,
-      });
+  while (true) {
+    const response = await notion.blocks.children.list({
+      block_id: blockId,
+      start_cursor: cursor,
+    });
 
-      blocks.push(...(response.results as NotionBlockType[]));
-
-      if (!response.has_more) break;
-      cursor = response.next_cursor ?? undefined;
+    for (const block of response.results as NotionBlockType[]) {
+      // has_children이 true인 블록은 항상 children을 가져옴
+      // 토글 블록, 토글 헤딩 등을 포함
+      if (block.has_children) {
+        try {
+          block.children = await getBlocksRecursively(block.id);
+        } catch (error) {
+          // children이 없거나 가져올 수 없는 경우 빈 배열로 설정
+          console.warn(`[Notion] Failed to fetch children for block ${block.id}:`, error);
+          block.children = [];
+        }
+      }
+      blocks.push(block);
     }
 
-    return blocks;
+    if (!response.has_more) {
+      break;
+    }
+
+    cursor = response.next_cursor ?? undefined;
+  }
+
+  return blocks;
+}
+
+export async function getPageBlocks(pageId: string): Promise<NotionBlockType[]> {
+  try {
+    return await getBlocksRecursively(pageId);
   } catch (error) {
     console.error('Error fetching page blocks:', error);
     return [];
