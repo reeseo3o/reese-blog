@@ -13,8 +13,8 @@ export default function OrbBackground() {
   if (!mounted) return null;
 
   return (
-    <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none opacity-80 md:opacity-90">
-      <Orb hue={-10} hoverIntensity={0.35} rotateOnHover={false} forceHoverState={false} />
+    <div className="absolute inset-0 z-0 overflow-hidden opacity-80 md:opacity-90">
+      <Orb hue={-10} hoverIntensity={0} rotateOnHover={false} forceHoverState={false} enableDrag={true} />
     </div>
   );
 }
