@@ -6,7 +6,7 @@ import PostCardSkeleton from '@/components/cards/PostCardSkeleton';
 
 export const metadata: Metadata = {
   title: 'Blog - Reese',
-  description: '개발 경험과 학습한 내용을 기록합니다',
+  description: '학습한 내용들을 기록합니다',
 };
 
 export const revalidate = 1800;
