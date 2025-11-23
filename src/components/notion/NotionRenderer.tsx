@@ -22,6 +22,7 @@ interface BlockValue {
   icon?: { emoji?: string };
   color?: string;
   url?: string;
+  is_toggleable?: boolean;
 }
 
 interface RichTextItem {
@@ -81,7 +82,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       );
 
     case 'heading_1':
-      if ((value as any)?.is_toggleable && children.length > 0) {
+      if (value?.is_toggleable && children.length > 0) {
         return (
           <details className="group my-6 rounded-lg border border-border/50 bg-muted/5 transition-all hover:bg-muted/10">
             <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-4 text-3xl font-bold hover:bg-accent/5 rounded-lg transition-colors">
@@ -107,7 +108,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       );
 
     case 'heading_2':
-      if ((value as any)?.is_toggleable && children.length > 0) {
+      if (value?.is_toggleable && children.length > 0) {
         return (
           <details className="group my-5 rounded-lg border border-border/50 bg-muted/5 transition-all hover:bg-muted/10">
             <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-2xl font-bold hover:bg-accent/5 rounded-lg transition-colors">
@@ -133,7 +134,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       );
 
     case 'heading_3':
-      if ((value as any)?.is_toggleable && children.length > 0) {
+      if (value?.is_toggleable && children.length > 0) {
         return (
           <details className="group my-4 rounded-lg border border-border/50 bg-muted/5 transition-all hover:bg-muted/10">
             <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-xl font-semibold hover:bg-accent/5 rounded-lg transition-colors">
@@ -288,7 +289,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       return null;
 
     case 'to_do':
-      const isChecked = (value as any)?.checked || false;
+      const isChecked = value?.checked || false;
       return (
         <div className="flex items-start gap-3 my-2">
           <input
@@ -304,8 +305,8 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       );
 
     case 'callout':
-      const icon = (value as any)?.icon?.emoji || '💡';
-      const calloutColor = (value as any)?.color || 'default';
+      const icon = value?.icon?.emoji || '💡';
+      const calloutColor = value?.color || 'default';
       const calloutBgClass =
         calloutColor === 'gray_background'
           ? 'bg-gray-100 dark:bg-gray-800'
@@ -373,7 +374,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
 
     case 'bookmark':
     case 'link_preview':
-      const bookmarkUrl = (value as any)?.url;
+      const bookmarkUrl = value?.url;
       if (!bookmarkUrl) return null;
 
       return (
