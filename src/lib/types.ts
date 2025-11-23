@@ -27,6 +27,8 @@ export interface Project {
 export interface NotionBlock {
   id: string;
   type: string;
+  has_children?: boolean;
+  children?: NotionBlock[];
   [key: string]: unknown;
 }
 
