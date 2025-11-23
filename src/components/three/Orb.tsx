@@ -8,6 +8,7 @@ interface OrbProps {
   hoverIntensity?: number;
   rotateOnHover?: boolean;
   forceHoverState?: boolean;
+  enableDrag?: boolean;
 }
 
 export default function Orb({
@@ -15,6 +16,7 @@ export default function Orb({
   hoverIntensity = 0.2,
   rotateOnHover = true,
   forceHoverState = false,
+  enableDrag = false,
 }: OrbProps) {
   const ctnDom = useRef<HTMLDivElement>(null);
 
@@ -226,6 +228,13 @@ export default function Orb({
     let currentRot = 0;
     const rotationSpeed = 0.01;
 
+    let isDragging = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let rotationVelocity = 0;
+    const dragSensitivity = 0.005;
+    const velocityDamping = 0.95;
+
     const handleMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -243,14 +252,65 @@ export default function Orb({
       } else {
         targetHover = 0;
       }
+
+      // 드래그 중일 때 회전 처리
+      if (enableDrag && isDragging) {
+        const deltaX = e.clientX - lastMouseX;
+        rotationVelocity = deltaX * dragSensitivity;
+        currentRot += rotationVelocity;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+      }
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (!enableDrag) return;
+      
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const width = rect.width;
+      const height = rect.height;
+      const size = Math.min(width, height);
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const uvX = ((x - centerX) / size) * 2.0;
+      const uvY = ((y - centerY) / size) * 2.0;
+
+      // Orb 영역 내에서만 드래그 시작
+      if (Math.sqrt(uvX * uvX + uvY * uvY) < 1.2) {
+        isDragging = true;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+        rotationVelocity = 0;
+        container.style.cursor = 'grabbing';
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (enableDrag && isDragging) {
+        isDragging = false;
+        container.style.cursor = 'grab';
+      }
     };
 
     const handleMouseLeave = () => {
       targetHover = 0;
+      if (enableDrag && isDragging) {
+        isDragging = false;
+        container.style.cursor = 'grab';
+      }
     };
 
     container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mousedown', handleMouseDown);
+    container.addEventListener('mouseup', handleMouseUp);
     container.addEventListener('mouseleave', handleMouseLeave);
+    
+    if (enableDrag) {
+      container.style.cursor = 'grab';
+      container.style.pointerEvents = 'auto';
+    }
 
     let rafId: number;
     const update = (t: number) => {
@@ -266,8 +326,15 @@ export default function Orb({
       const hoverSpeed = effectiveHover > program.uniforms.hover.value ? 0.1 : 0.6;
       program.uniforms.hover.value += (effectiveHover - program.uniforms.hover.value) * hoverSpeed;
 
-      if (rotateOnHover && effectiveHover > 0.5) {
-        currentRot += dt * rotationSpeed;
+      // 드래그 중이 아닐 때만 자동 회전 또는 관성 적용
+      if (!isDragging) {
+        if (rotateOnHover && effectiveHover > 0.5) {
+          currentRot += dt * rotationSpeed;
+        } else if (enableDrag && Math.abs(rotationVelocity) > 0.0001) {
+          // 관성 회전 (드래그 후 천천히 멈춤)
+          currentRot += rotationVelocity;
+          rotationVelocity *= velocityDamping;
+        }
       }
       program.uniforms.rot.value = currentRot;
 
@@ -279,13 +346,15 @@ export default function Orb({
       cancelAnimationFrame(rafId);
       window.removeEventListener('resize', resize);
       container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mousedown', handleMouseDown);
+      container.removeEventListener('mouseup', handleMouseUp);
       container.removeEventListener('mouseleave', handleMouseLeave);
       if (container.contains(gl.canvas)) {
         container.removeChild(gl.canvas);
       }
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, vert, frag]);
+  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, enableDrag, vert, frag]);
 
   return <div ref={ctnDom} className="orb-container" />;
 }

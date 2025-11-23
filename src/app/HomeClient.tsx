@@ -32,7 +32,7 @@ export default function HomeClient({ posts, projects }: HomeClientProps) {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden mb-24">
         <OrbBackground />
         <motion.div
-          className="relative z-10 max-w-[680px] md:max-w-2xl mx-auto px-5 sm:px-6 md:px-12 pt-10 md:pt-14 space-y-6 text-center"
+          className="relative z-20 max-w-[680px] md:max-w-2xl mx-auto px-5 sm:px-6 md:px-12 pt-10 md:pt-14 space-y-6 text-center pointer-events-none"
           initial="initial"
           animate="animate"
           variants={staggerContainer}
@@ -44,7 +44,7 @@ export default function HomeClient({ posts, projects }: HomeClientProps) {
             Learning through problems growing through learning.
           </motion.p>
 
-          <motion.div className="flex items-center justify-center gap-6" variants={fadeInUp}>
+          <motion.div className="flex items-center justify-center gap-6 pointer-events-auto" variants={fadeInUp}>
             <Link
               href="/blog"
               className="group relative font-medium text-base transition-all duration-300"
