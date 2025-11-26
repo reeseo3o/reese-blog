@@ -16,7 +16,36 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reese-blog.com';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reese-log.com';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}/#website`,
+      url: siteUrl,
+      name: 'Reese-log',
+      description: '기록하고 나누며 함께 성장합니다. 작은 배움이 모여 만드는 임팩트를 믿습니다.',
+      inLanguage: 'ko-KR',
+      publisher: {
+        '@id': `${siteUrl}/#person`,
+      },
+    },
+    {
+      '@type': 'Person',
+      '@id': `${siteUrl}/#person`,
+      name: 'Reese',
+      url: siteUrl,
+      description: '프런트엔드 개발자',
+      jobTitle: 'Frontend Developer',
+      sameAs: [
+        'https://github.com/reeseo3o',
+        'https://x.com/nunnu099',
+      ],
+    },
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -30,7 +59,7 @@ export const metadata: Metadata = {
     '블로그',
     '포트폴리오',
     '프로젝트',
-    '프론트엔드',
+    '프런트엔드',
     '웹 개발',
     'React',
     'Next.js',
@@ -93,6 +122,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ''} />
         <ThemeProvider>

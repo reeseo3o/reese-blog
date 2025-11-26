@@ -15,7 +15,7 @@ export default function AboutPage() {
             <div>
               <h1 className="text-5xl md:text-6xl font-bold mb-2">About.</h1>
               <p className="text-xl text-muted">
-                안녕하세요. 4년차 프론트엔드 개발자 <span className="font-semibold">안예지</span>입니다.
+                안녕하세요. 4년차 프런트엔드 개발자 <span className="font-semibold">안예지</span>입니다.
               </p>
             </div>
           </div>

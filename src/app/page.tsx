@@ -7,13 +7,13 @@ export const revalidate = 1800;
 export const metadata: Metadata = {
   title: 'Reese-log',
   description:
-    '프로덕트를 설계하고 구현합니다. 사용자 경험과 기술적 완성도, 두 가지를 모두 고민합니다.',
+    '기록하고 나누며 함께 성장합니다. 작은 배움이 모여 만드는 임팩트를 믿습니다.',
   keywords: [
     '개발자 블로그',
     '프로덕트 개발',
     '사용자 경험',
     '기술 블로그',
-    '프론트엔드',
+    '프런트엔드',
     'Developer',
     'FE',
     'Frontend',
@@ -29,29 +29,29 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://reese-blog.com',
-    title: 'Reese-log - 프로덕트를 설계하고 구현합니다',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://reese-log.com',
+    title: 'Reese-log - 기록하고 나누며 함께 성장합니다',
     description:
-      '프로덕트를 설계하고 구현합니다. 사용자 경험과 기술적 완성도, 두 가지를 모두 고민합니다.',
+      '기록하고 나누며 함께 성장합니다. 작은 배움이 모여 만드는 임팩트를 믿습니다.',
     siteName: 'Reese-log',
     images: [
       {
         url: '/images/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Reese-log - 프로덕트를 설계하고 구현합니다',
+        alt: 'Reese-log - 기록하고 나누며 함께 성장합니다',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Reese-log - 프로덕트를 설계하고 구현합니다',
+    title: 'Reese-log - 기록하고 나누며 함께 성장합니다',
     description:
-      '프로덕트를 설계하고 구현합니다. 사용자 경험과 기술적 완성도, 두 가지를 모두 고민합니다.',
+      '기록하고 나누며 함께 성장합니다. 작은 배움이 모여 만드는 임팩트를 믿습니다.',
     images: ['/images/og-image.png'],
   },
   alternates: {
-    canonical: process.env.NEXT_PUBLIC_SITE_URL || 'https://reese-blog.com',
+    canonical: process.env.NEXT_PUBLIC_SITE_URL || 'https://reese-log.com',
   },
 };
 
