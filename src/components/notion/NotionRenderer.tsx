@@ -76,7 +76,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
   switch (type) {
     case 'paragraph':
       return (
-        <p className="my-4">
+        <p className="my-1">
           <RichText richText={value?.rich_text} />
         </p>
       );
