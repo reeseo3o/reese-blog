@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reese-blog.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reese-log.com';
   const url = `${siteUrl}/blog/${post.slug}`;
 
   return {

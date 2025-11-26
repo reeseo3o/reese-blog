@@ -3,7 +3,7 @@ import { getPosts } from '@/lib/notion';
 import { getAllProjects } from '@/lib/projects';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reese-blog.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reese-log.com';
 
   const staticPages: MetadataRoute.Sitemap = [
     {
