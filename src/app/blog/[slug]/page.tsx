@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: post.thumbnail
         ? [
             {
-              url: post.thumbnail,
+              url: `${siteUrl}/api/thumbnail/${post.id}`,
               width: 1200,
               height: 630,
               alt: post.title,
@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title: post.title,
       description: post.description || post.title,
-      images: post.thumbnail ? [post.thumbnail] : undefined,
+      images: post.thumbnail ? [`${siteUrl}/api/thumbnail/${post.id}`] : undefined,
     },
   };
 }

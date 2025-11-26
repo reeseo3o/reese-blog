@@ -190,20 +190,21 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       return <hr className="my-8 border-border" />;
 
     case 'image':
-      const src = value?.file?.url || value?.external?.url;
+      const imageSrc = value?.file?.url 
+        ? `/api/blocks/${block.id}/image` 
+        : value?.external?.url;
       const caption = value?.caption?.[0]?.plain_text;
       return (
         <figure className="my-6">
-          {src && (
+          {imageSrc && (
             <SafeImage
-              src={src}
+              src={imageSrc}
               alt={caption || ''}
               width={800}
               height={600}
               className="rounded-lg mx-auto max-w-full h-auto max-h-[70vh] object-contain"
               maxRetries={2}
               retryDelayMs={800}
-              unoptimized
             />
           )}
           {caption && (
@@ -351,19 +352,31 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       );
 
     case 'video':
-      const videoSrc = value?.file?.url || value?.external?.url;
+      const videoSrc = value?.file?.url 
+        ? `/api/blocks/${block.id}/image`
+        : value?.external?.url;
       if (!videoSrc) return null;
+      
+      const isExternalVideo = !!value?.external?.url;
       
       return (
         <figure className="my-6">
-          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-            <iframe
+          {isExternalVideo ? (
+            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+              <iframe
+                src={videoSrc}
+                className="absolute top-0 left-0 w-full h-full rounded-lg"
+                allowFullScreen
+                title="Video"
+              />
+            </div>
+          ) : (
+            <video
               src={videoSrc}
-              className="absolute top-0 left-0 w-full h-full rounded-lg"
-              allowFullScreen
-              title="Video"
+              controls
+              className="w-full rounded-lg"
             />
-          </div>
+          )}
           {value?.caption?.[0]?.plain_text && (
             <figcaption className="text-center text-sm text-muted mt-2">
               {value.caption[0].plain_text}
@@ -408,7 +421,10 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
 
     case 'file':
     case 'pdf':
-      const fileUrl = value?.file?.url || value?.external?.url;
+      // Notion 내부 파일은 API 프록시 사용
+      const fileUrl = value?.file?.url 
+        ? `/api/blocks/${block.id}/image`
+        : value?.external?.url;
       const fileName = value?.caption?.[0]?.plain_text || 'Download File';
       
       if (!fileUrl) return null;

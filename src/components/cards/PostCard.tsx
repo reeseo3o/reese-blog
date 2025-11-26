@@ -41,7 +41,7 @@ export default function PostCard({ post }: PostCardProps) {
           {post.thumbnail && (
             <div className="relative w-full h-48 overflow-hidden bg-muted/10">
               <SafeImage
-                src={post.thumbnail}
+                src={`/api/thumbnail/${post.id}`}
                 alt={post.title}
                 fill
                 className={`object-cover transition-all duration-500 group-hover:scale-110 ${
