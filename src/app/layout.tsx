@@ -51,7 +51,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: 'Reese - Developer & Creator',
-    template: '%s | Reese',
+    template: '%s | Reese-log',
   },
   description: '개발자 Reese의 블로그와 프로젝트 포트폴리오',
   keywords: [
@@ -85,13 +85,13 @@ export const metadata: Metadata = {
     ],
     url: siteUrl,
     title: 'Reese - Developer & Creator',
-    description: '개발자 Reese의 블로그와 프로젝트 포트폴리오',
+    description: `Frontend Developer Reese's Blog`,
     siteName: 'Reese Blog',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Reese - Developer & Creator',
-    description: '개발자 Reese의 블로그와 프로젝트 포트폴리오',
+    description: `Frontend Developer Reese's Blog`,
     creator: '@reese',
     images: ['/images/og-image.png'],
   },

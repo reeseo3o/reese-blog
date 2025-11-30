@@ -1,8 +1,39 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
 export default function AboutPage() {
+  const [displayText, setDisplayText] = useState('');
+  const [cursorVisible, setCursorVisible] = useState(true);
+  const [hideCursor, setHideCursor] = useState(false);
+  const fullText = '안녕하세요. 프런트엔드 개발자 안예지입니다.';
+
+  useEffect(() => {
+    let currentIndex = 0;
+    const typingInterval = setInterval(() => {
+      if (currentIndex <= fullText.length) {
+        setDisplayText(fullText.slice(0, currentIndex));
+        currentIndex++;
+      } else {
+        clearInterval(typingInterval);
+        setTimeout(() => setHideCursor(true), 1500);
+      }
+    }, 80);
+
+    return () => clearInterval(typingInterval);
+  }, []);
+
+  useEffect(() => {
+    if (hideCursor) return;
+
+    const cursorInterval = setInterval(() => {
+      setCursorVisible((prev) => !prev);
+    }, 530);
+
+    return () => clearInterval(cursorInterval);
+  }, [hideCursor]);
+
   return (
     <div className="pt-8 pb-16 px-6">
       <div className="max-w-4xl mx-auto">
@@ -15,7 +46,12 @@ export default function AboutPage() {
             <div>
               <h1 className="text-5xl md:text-6xl font-bold mb-2">About.</h1>
               <p className="text-xl text-muted">
-                안녕하세요. 4년차 프런트엔드 개발자 <span className="font-semibold">안예지</span>입니다.
+                <span>{displayText}</span>
+                <span
+                  className={`inline-block w-[2px] h-[1.2em] ml-0.5 bg-accent align-middle transition-opacity duration-100 ${
+                    hideCursor ? 'opacity-0' : cursorVisible ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
               </p>
             </div>
           </div>
