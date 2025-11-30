@@ -381,6 +381,25 @@ export async function getPageBlocks(pageId: string): Promise<NotionBlockType[]> 
   }
 }
 
+export function extractDescriptionFromBlocks(blocks: NotionBlockType[], maxLength: number = 160): string {
+  for (const block of blocks) {
+    if (block.type === 'paragraph') {
+      const paragraph = block as unknown as { 
+        type: 'paragraph'; 
+        paragraph: { rich_text: Array<{ plain_text: string }> } 
+      };
+      const text = paragraph.paragraph?.rich_text?.map(t => t.plain_text).join('') || '';
+      if (text.trim()) {
+        const trimmedText = text.trim();
+        return trimmedText.length > maxLength 
+          ? trimmedText.slice(0, maxLength) + '...' 
+          : trimmedText;
+      }
+    }
+  }
+  return '';
+}
+
 export async function getRecentPosts(limit: number = 3): Promise<Post[]> {
   const posts = await getPosts();
   return posts.slice(0, limit);

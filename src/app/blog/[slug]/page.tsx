@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getPostBySlug, getPageBlocks, getPosts } from '@/lib/notion';
+import { getPostBySlug, getPageBlocks, getPosts, extractDescriptionFromBlocks } from '@/lib/notion';
 import NotionRenderer from '@/components/notion/NotionRenderer';
 import Comments from '@/components/Comments';
 import type { Metadata } from 'next';
@@ -32,14 +32,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reese-log.com';
   const url = `${siteUrl}/blog/${post.slug}`;
 
+  let description = post.description;
+  if (!description) {
+    const blocks = await getPageBlocks(post.id);
+    description = extractDescriptionFromBlocks(blocks) || post.title;
+  }
+
   return {
     title: post.title,
-    description: post.description || post.title,
+    description,
     keywords: post.tags?.join(', '),
     authors: [{ name: 'Reese' }],
     openGraph: {
       title: post.title,
-      description: post.description || post.title,
+      description,
       url,
       type: 'article',
       publishedTime: post.date,
@@ -59,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: post.title,
-      description: post.description || post.title,
+      description,
       images: post.thumbnail ? [`${siteUrl}/api/thumbnail/${post.id}`] : undefined,
     },
   };
