@@ -19,12 +19,14 @@ export default function HomeClient({ posts }: HomeClientProps) {
       {/* Hero Section */}
       <section className="relative min-h-[calc(82svh-5rem)] flex items-center justify-center overflow-hidden mb-12 md:mb-16">
         <OrbBackground />
-        <div className="relative z-20 max-w-[720px] mx-auto px-5 sm:px-8 md:px-12 pt-8 md:pt-12 space-y-7 text-center pointer-events-none">
+        <div className="relative z-20 max-w-[620px] mx-auto px-6 sm:px-8 md:px-10 pt-8 md:pt-12 space-y-7 text-center pointer-events-none">
           <p className="font-mono text-[0.7rem] sm:text-xs font-medium uppercase tracking-[0.24em] text-muted">
             Frontend Engineer
           </p>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-[-0.045em] leading-[1.08] [text-wrap:balance]">
-            I design interfaces that make complexity feel simple.
+          <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-semibold tracking-[-0.04em] leading-[1.12]">
+            <span className="block">I turn complex business</span>
+            <span className="block">needs into simple,</span>
+            <span className="block">resilient products.</span>
           </h1>
 
           <div className="flex items-center justify-center gap-6 pointer-events-auto">
@@ -61,8 +63,8 @@ export default function HomeClient({ posts }: HomeClientProps) {
           <AnimatedSection>
             {posts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {posts.map((post, index) => (
-                  <PostCard key={post.id} post={post} priority={index < 3} />
+                {posts.map((post) => (
+                  <PostCard key={post.id} post={post} />
                 ))}
               </div>
             ) : (

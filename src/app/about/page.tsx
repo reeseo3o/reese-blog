@@ -23,10 +23,10 @@ const principles = [
 ];
 
 const profile = [
-  ['Role', 'Frontend Engineer'],
-  ['Focus', 'Product interfaces · UI architecture'],
-  ['Core', 'React · Next.js · TypeScript'],
-  ['Curious about', 'Design systems · Developer experience'],
+  { term: 'Role', description: 'Frontend Engineer' },
+  { term: 'Focus', description: 'Product interfaces · UI architecture' },
+  { term: 'Core', description: 'React · Next.js · TypeScript' },
+  { term: 'Curious about', description: 'Design systems · Developer experience' },
 ];
 
 export default function AboutPage() {
@@ -51,7 +51,7 @@ export default function AboutPage() {
 
           <aside className="self-end lg:col-span-5" aria-label="Profile">
             <dl className="border-t border-foreground">
-              {profile.map(([term, description]) => (
+              {profile.map(({ term, description }) => (
                 <div
                   key={term}
                   className="grid grid-cols-[7.5rem_1fr] gap-4 border-b border-border py-4 text-sm"

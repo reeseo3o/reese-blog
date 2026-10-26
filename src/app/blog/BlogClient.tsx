@@ -178,7 +178,7 @@ export default function BlogClient({
           <>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {posts.map((post, index) => (
-                <PostCard key={post.id} post={post} priority={index < 3} />
+                <PostCard key={post.id} post={post} priority={index === 0} />
               ))}
             </div>
 
