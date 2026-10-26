@@ -61,8 +61,8 @@ export default function HomeClient({ posts }: HomeClientProps) {
           <AnimatedSection>
             {posts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {posts.map((post, index) => (
-                  <PostCard key={post.id} post={post} priority={index < 3} />
+                {posts.map((post) => (
+                  <PostCard key={post.id} post={post} />
                 ))}
               </div>
             ) : (
