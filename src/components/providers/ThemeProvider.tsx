@@ -72,10 +72,6 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
     setTheme(newTheme);
   };
 
-  if (!mounted) {
-    return <div style={{ visibility: 'hidden' }}>{children}</div>;
-  }
-
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
       {children}

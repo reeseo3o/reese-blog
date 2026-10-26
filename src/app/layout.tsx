@@ -39,10 +39,7 @@ const jsonLd = {
       url: siteUrl,
       description: '프런트엔드 개발자',
       jobTitle: 'Frontend Developer',
-      sameAs: [
-        'https://github.com/reeseo3o',
-        'https://x.com/nunnu099',
-      ],
+      sameAs: ['https://github.com/reeseo3o', 'https://x.com/nunnu099'],
     },
   ],
 };
@@ -123,6 +120,11 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var saved=localStorage.getItem('theme');var theme=saved||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',theme)}catch(e){}})()`,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

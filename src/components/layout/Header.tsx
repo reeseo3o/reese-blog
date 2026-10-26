@@ -15,11 +15,8 @@ const navigation = [
 export default function Header() {
   const pathname = usePathname();
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-
     const currentTheme = document.documentElement.getAttribute('data-theme') as 'light' | 'dark';
     setTheme(currentTheme || 'light');
 

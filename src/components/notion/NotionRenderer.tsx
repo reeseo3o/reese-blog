@@ -6,6 +6,7 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useEffect, useState, useRef } from 'react';
 import mermaid from 'mermaid';
 import SafeImage from '@/components/SafeImage';
+import { useTheme } from '@/components/providers/ThemeProvider';
 
 interface NotionRendererProps {
   blocks: NotionBlockType[];
@@ -38,6 +39,9 @@ interface RichTextItem {
 }
 
 export default function NotionRenderer({ blocks }: NotionRendererProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   if (!blocks || blocks.length === 0) {
     return <div className="text-muted">콘텐츠가 없습니다.</div>;
   }
@@ -45,33 +49,16 @@ export default function NotionRenderer({ blocks }: NotionRendererProps) {
   return (
     <div className="notion-content prose prose-lg dark:prose-invert max-w-none">
       {blocks.map((block) => (
-        <NotionBlock key={block.id} block={block} />
+        <NotionBlock key={block.id} block={block} isDark={isDark} />
       ))}
     </div>
   );
 }
 
-function NotionBlock({ block }: { block: NotionBlockType }) {
+function NotionBlock({ block, isDark }: { block: NotionBlockType; isDark: boolean }) {
   const { type } = block;
   const value = block[type] as BlockValue | undefined;
-  const [isDark, setIsDark] = useState(false);
   const children = (block.children as NotionBlockType[] | undefined) ?? [];
-
-  useEffect(() => {
-    const checkDarkMode = () => {
-      setIsDark(document.documentElement.classList.contains('dark'));
-    };
-
-    checkDarkMode();
-
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-
-    return () => observer.disconnect();
-  }, []);
 
   switch (type) {
     case 'paragraph':
@@ -95,7 +82,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
             </summary>
             <div className="px-5 pb-4 pt-2 space-y-3 border-t border-border/30 mt-2">
               {children.map((child) => (
-                <NotionBlock key={child.id} block={child} />
+                <NotionBlock key={child.id} block={child} isDark={isDark} />
               ))}
             </div>
           </details>
@@ -121,7 +108,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
             </summary>
             <div className="px-4 pb-3 pt-2 space-y-3 border-t border-border/30 mt-2">
               {children.map((child) => (
-                <NotionBlock key={child.id} block={child} />
+                <NotionBlock key={child.id} block={child} isDark={isDark} />
               ))}
             </div>
           </details>
@@ -147,7 +134,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
             </summary>
             <div className="px-4 pb-3 pt-2 space-y-3 border-t border-border/30 mt-2">
               {children.map((child) => (
-                <NotionBlock key={child.id} block={child} />
+                <NotionBlock key={child.id} block={child} isDark={isDark} />
               ))}
             </div>
           </details>
@@ -190,9 +177,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       return <hr className="my-8 border-border" />;
 
     case 'image':
-      const imageSrc = value?.file?.url 
-        ? `/api/blocks/${block.id}/image` 
-        : value?.external?.url;
+      const imageSrc = value?.file?.url ? `/api/blocks/${block.id}/image` : value?.external?.url;
       const caption = value?.caption?.[0]?.plain_text;
       return (
         <figure className="my-6">
@@ -227,7 +212,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
           {children && children.length > 0 && (
             <div className="space-y-3 border-t border-border/50 px-4 py-4">
               {children.map((child) => (
-                <NotionBlock key={child.id} block={child} />
+                <NotionBlock key={child.id} block={child} isDark={isDark} />
               ))}
             </div>
           )}
@@ -236,15 +221,15 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
 
     case 'table':
       if (!children || children.length === 0) return null;
-      
+
       const tableRows = children.filter((row) => row.type === 'table_row');
       if (tableRows.length === 0) return null;
-      
+
       const headerRow = tableRows[0];
       const bodyRows = tableRows.slice(1);
       const headerRowValue = headerRow[headerRow.type] as BlockValue | undefined;
       const headerCells = headerRowValue?.cells || [];
-      
+
       return (
         <div className="my-6 overflow-x-auto">
           <table className="w-full border-collapse border border-border/50 rounded-lg overflow-hidden">
@@ -266,9 +251,12 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
               {bodyRows.map((row) => {
                 const rowValue = row[row.type] as BlockValue | undefined;
                 const cells = rowValue?.cells || [];
-                
+
                 return (
-                  <tr key={row.id} className="border-b border-border/50 last:border-b-0 hover:bg-muted/10 transition-colors">
+                  <tr
+                    key={row.id}
+                    className="border-b border-border/50 last:border-b-0 hover:bg-muted/10 transition-colors"
+                  >
                     {cells.map((cell, cellIndex) => (
                       <td
                         key={cellIndex}
@@ -325,7 +313,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
             {children && children.length > 0 && (
               <div className="mt-2 space-y-2">
                 {children.map((child) => (
-                  <NotionBlock key={child.id} block={child} />
+                  <NotionBlock key={child.id} block={child} isDark={isDark} />
                 ))}
               </div>
             )}
@@ -337,7 +325,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-6">
           {children.map((child) => (
-            <NotionBlock key={child.id} block={child} />
+            <NotionBlock key={child.id} block={child} isDark={isDark} />
           ))}
         </div>
       );
@@ -346,19 +334,17 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       return (
         <div className="space-y-3">
           {children.map((child) => (
-            <NotionBlock key={child.id} block={child} />
+            <NotionBlock key={child.id} block={child} isDark={isDark} />
           ))}
         </div>
       );
 
     case 'video':
-      const videoSrc = value?.file?.url 
-        ? `/api/blocks/${block.id}/image`
-        : value?.external?.url;
+      const videoSrc = value?.file?.url ? `/api/blocks/${block.id}/image` : value?.external?.url;
       if (!videoSrc) return null;
-      
+
       const isExternalVideo = !!value?.external?.url;
-      
+
       return (
         <figure className="my-6">
           {isExternalVideo ? (
@@ -371,11 +357,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
               />
             </div>
           ) : (
-            <video
-              src={videoSrc}
-              controls
-              className="w-full rounded-lg"
-            />
+            <video src={videoSrc} controls className="w-full rounded-lg" />
           )}
           {value?.caption?.[0]?.plain_text && (
             <figcaption className="text-center text-sm text-muted mt-2">
@@ -410,23 +392,16 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
 
       return (
         <div className="my-6 border border-border/50 rounded-lg overflow-hidden">
-          <iframe
-            src={embedUrl}
-            className="w-full h-96"
-            allowFullScreen
-            title="Embed"
-          />
+          <iframe src={embedUrl} className="w-full h-96" allowFullScreen title="Embed" />
         </div>
       );
 
     case 'file':
     case 'pdf':
       // Notion 내부 파일은 API 프록시 사용
-      const fileUrl = value?.file?.url 
-        ? `/api/blocks/${block.id}/image`
-        : value?.external?.url;
+      const fileUrl = value?.file?.url ? `/api/blocks/${block.id}/image` : value?.external?.url;
       const fileName = value?.caption?.[0]?.plain_text || 'Download File';
-      
+
       if (!fileUrl) return null;
 
       return (
@@ -533,7 +508,7 @@ function MermaidDiagram({ chart, isDark }: { chart: string; isDark: boolean }) {
   }, [chart, isDark]);
 
   return (
-    <div className="my-6 rounded-lg overflow-hidden border border-border/50 bg-white dark:bg-gray-900">
+    <div className="my-6 rounded-lg overflow-hidden border border-border/50 bg-background">
       <div className="bg-muted/10 px-4 py-2 border-b border-border/50">
         <span className="text-xs font-mono text-muted uppercase">MERMAID</span>
       </div>

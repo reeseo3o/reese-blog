@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, Variants } from 'framer-motion';
+import { motion, useReducedMotion, Variants } from 'framer-motion';
 import { ReactNode } from 'react';
 
 interface AnimatedSectionProps {
@@ -21,10 +21,13 @@ export default function AnimatedSection({
   variants = defaultVariants,
   delay = 0,
 }: AnimatedSectionProps) {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
     <motion.div
-      initial="hidden"
-      whileInView="visible"
+      initial={shouldReduceMotion ? false : 'hidden'}
+      whileInView={shouldReduceMotion ? undefined : 'visible'}
+      animate={shouldReduceMotion ? 'visible' : undefined}
       viewport={{ once: true }}
       variants={variants}
       transition={{ duration: 0.8, delay }}
@@ -34,4 +37,3 @@ export default function AnimatedSection({
     </motion.div>
   );
 }
-

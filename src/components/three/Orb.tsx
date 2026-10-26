@@ -20,7 +20,6 @@ export default function Orb({
 }: OrbProps) {
   const ctnDom = useRef<HTMLDivElement>(null);
 
-  
   const vert = /* glsl */ `
     precision highp float;
     attribute vec2 position;
@@ -208,7 +207,7 @@ export default function Orb({
 
     function resize() {
       if (!container) return;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
       const width = container.clientWidth;
       const height = container.clientHeight;
       renderer.setSize(width * dpr, height * dpr);
@@ -230,7 +229,6 @@ export default function Orb({
 
     let isDragging = false;
     let lastMouseX = 0;
-    let lastMouseY = 0;
     let rotationVelocity = 0;
     const dragSensitivity = 0.005;
     const velocityDamping = 0.95;
@@ -259,13 +257,12 @@ export default function Orb({
         rotationVelocity = deltaX * dragSensitivity;
         currentRot += rotationVelocity;
         lastMouseX = e.clientX;
-        lastMouseY = e.clientY;
       }
     };
 
     const handleMouseDown = (e: MouseEvent) => {
       if (!enableDrag) return;
-      
+
       const rect = container.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -281,7 +278,6 @@ export default function Orb({
       if (Math.sqrt(uvX * uvX + uvY * uvY) < 1.2) {
         isDragging = true;
         lastMouseX = e.clientX;
-        lastMouseY = e.clientY;
         rotationVelocity = 0;
         container.style.cursor = 'grabbing';
       }
@@ -306,15 +302,30 @@ export default function Orb({
     container.addEventListener('mousedown', handleMouseDown);
     container.addEventListener('mouseup', handleMouseUp);
     container.addEventListener('mouseleave', handleMouseLeave);
-    
+
     if (enableDrag) {
       container.style.cursor = 'grab';
       container.style.pointerEvents = 'auto';
     }
 
-    let rafId: number;
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let prefersReducedMotion = motionQuery.matches;
+    let isInViewport = true;
+    let isDocumentVisible = !document.hidden;
+    let rafId: number | null = null;
+
+    const shouldAnimate = () => isInViewport && isDocumentVisible && !prefersReducedMotion;
+
+    const renderScene = () => {
+      renderer.render({ scene: mesh });
+    };
+
     const update = (t: number) => {
-      rafId = requestAnimationFrame(update);
+      if (!shouldAnimate()) {
+        rafId = null;
+        return;
+      }
+
       const dt = (t - lastTime) * 0.001;
       lastTime = t;
       program.uniforms.iTime.value = t * 0.001;
@@ -338,13 +349,58 @@ export default function Orb({
       }
       program.uniforms.rot.value = currentRot;
 
-      renderer.render({ scene: mesh });
+      renderScene();
+      rafId = requestAnimationFrame(update);
     };
-    rafId = requestAnimationFrame(update);
+
+    const syncAnimation = () => {
+      if (shouldAnimate()) {
+        if (rafId === null) {
+          lastTime = performance.now();
+          rafId = requestAnimationFrame(update);
+        }
+        return;
+      }
+
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+
+      if (isInViewport) {
+        renderScene();
+      }
+    };
+
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      isInViewport = entry.isIntersecting;
+      syncAnimation();
+    });
+
+    const handleVisibilityChange = () => {
+      isDocumentVisible = !document.hidden;
+      syncAnimation();
+    };
+
+    const handleMotionPreferenceChange = (event: MediaQueryListEvent) => {
+      prefersReducedMotion = event.matches;
+      syncAnimation();
+    };
+
+    intersectionObserver.observe(container);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    motionQuery.addEventListener('change', handleMotionPreferenceChange);
+    renderScene();
+    syncAnimation();
 
     return () => {
-      cancelAnimationFrame(rafId);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
       window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      motionQuery.removeEventListener('change', handleMotionPreferenceChange);
+      intersectionObserver.disconnect();
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mousedown', handleMouseDown);
       container.removeEventListener('mouseup', handleMouseUp);

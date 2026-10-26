@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import SafeImage from '@/components/SafeImage';
 import { motion } from 'framer-motion';
 import { Project } from '@/lib/types';

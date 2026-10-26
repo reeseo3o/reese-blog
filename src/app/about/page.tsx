@@ -1,83 +1,109 @@
-'use client';
+import Link from 'next/link';
+import SocialLinks from '@/components/common/SocialLinks';
 
-import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+const principles = [
+  {
+    number: '01',
+    title: 'Clarity over cleverness',
+    description:
+      'The best interface makes the next step feel obvious. I care about reducing friction without hiding important complexity.',
+  },
+  {
+    number: '02',
+    title: 'Systems that stay useful',
+    description:
+      'I enjoy shaping reusable UI foundations and predictable architecture that help teams move with confidence.',
+  },
+  {
+    number: '03',
+    title: 'Learning in public',
+    description:
+      'Writing helps me turn experience into durable knowledge—and gives that knowledge a chance to help someone else.',
+  },
+];
+
+const profile = [
+  ['Role', 'Frontend Engineer'],
+  ['Focus', 'Product interfaces · UI architecture'],
+  ['Core', 'React · Next.js · TypeScript'],
+  ['Curious about', 'Design systems · Developer experience'],
+];
 
 export default function AboutPage() {
-  const [displayText, setDisplayText] = useState('');
-  const [cursorVisible, setCursorVisible] = useState(true);
-  const [hideCursor, setHideCursor] = useState(false);
-  const fullText = '안녕하세요. 프런트엔드 개발자 안예지입니다.';
-
-  useEffect(() => {
-    let currentIndex = 0;
-    const typingInterval = setInterval(() => {
-      if (currentIndex <= fullText.length) {
-        setDisplayText(fullText.slice(0, currentIndex));
-        currentIndex++;
-      } else {
-        clearInterval(typingInterval);
-        setTimeout(() => setHideCursor(true), 1500);
-      }
-    }, 80);
-
-    return () => clearInterval(typingInterval);
-  }, []);
-
-  useEffect(() => {
-    if (hideCursor) return;
-
-    const cursorInterval = setInterval(() => {
-      setCursorVisible((prev) => !prev);
-    }, 530);
-
-    return () => clearInterval(cursorInterval);
-  }, [hideCursor]);
-
   return (
-    <div className="pt-8 pb-16 px-6">
-      <div className="max-w-4xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="mb-10 flex items-center gap-6">
-            <div>
-              <h1 className="text-5xl md:text-6xl font-bold mb-2">About.</h1>
-              <p className="text-xl text-muted">
-                <span>{displayText}</span>
-                <span
-                  className={`inline-block w-[2px] h-[1.2em] ml-0.5 bg-accent align-middle transition-opacity duration-100 ${
-                    hideCursor ? 'opacity-0' : cursorVisible ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-              </p>
-            </div>
+    <main className="px-6 py-14 md:px-12 md:py-20">
+      <div className="mx-auto max-w-6xl">
+        <header className="grid gap-12 border-b border-border pb-16 lg:grid-cols-12 lg:gap-16 lg:pb-24">
+          <div className="lg:col-span-7">
+            <p className="mb-5 font-mono text-xs uppercase tracking-[0.22em] text-muted">
+              Frontend Engineer
+            </p>
+            <h1 className="mb-8 text-5xl font-semibold tracking-[-0.055em] md:text-7xl">About.</h1>
+            <p className="max-w-3xl text-2xl font-medium leading-snug tracking-[-0.025em] md:text-4xl md:leading-tight">
+              I build thoughtful interfaces where product intent, design, and engineering meet.
+            </p>
+            <p className="mt-8 max-w-2xl text-base leading-relaxed text-muted md:text-lg">
+              I started building products because I love the moment an idea becomes something people
+              can actually use. I care about sharing what I learn, working with kind people, and
+              making complex experiences feel clear.
+            </p>
           </div>
 
-          <section className="mb-16 space-y-6">
-            <div className="prose prose-lg dark:prose-invert">
-              <p>
-                알고 있는 것을 공유하고, 그것이 누군가에게 도움이 되었을 때 가장 보람을 느낍니다.
-              </p>
-              <p>
-                제품을 만들면서 경험하는 성취감에 즐거움을 느껴 개발을 시작했습니다.
-              </p>
-              <p>
-                멋진 동료분들과 재밌는 걸 만들어 나가는 개발자로 성장해나가고 싶습니다.
-              </p>
-            </div>
+          <aside className="self-end lg:col-span-5" aria-label="Profile">
+            <dl className="border-t border-foreground">
+              {profile.map(([term, description]) => (
+                <div
+                  key={term}
+                  className="grid grid-cols-[7.5rem_1fr] gap-4 border-b border-border py-4 text-sm"
+                >
+                  <dt className="font-mono text-xs uppercase tracking-wider text-muted">{term}</dt>
+                  <dd className="font-medium">{description}</dd>
+                </div>
+              ))}
+            </dl>
+          </aside>
+        </header>
 
-            <div className="mt-12 pt-8 border-t border-border">
-              <p className="text-sm text-muted flex items-center gap-2">
-                <span>💬</span>
-                <span>블로그 포스팅에서 바로잡아야 할 내용이 있다면 댓글로 남겨주세요. 🙂</span>
-              </p>
-            </div>
-          </section>
-        </motion.div>
+        <section className="py-16 md:py-24">
+          <h2 className="mb-10 text-3xl font-semibold tracking-[-0.035em] md:text-4xl">
+            What I care about.
+          </h2>
+
+          <div className="grid border-t border-border md:grid-cols-3">
+            {principles.map((principle) => (
+              <article
+                key={principle.number}
+                className="border-b border-border py-8 md:border-r md:px-8 md:last:border-r-0 md:first:pl-0 md:last:pr-0"
+              >
+                <span className="font-mono text-xs text-muted">{principle.number}</span>
+                <h3 className="mt-8 text-xl font-semibold tracking-[-0.02em]">{principle.title}</h3>
+                <p className="mt-4 text-sm leading-relaxed text-muted">{principle.description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-8 rounded-3xl border border-border bg-foreground p-8 text-background md:grid-cols-[1fr_auto] md:items-end md:p-12">
+          <div>
+            <p className="mb-4 font-mono text-xs uppercase tracking-[0.22em] opacity-60">
+              Keep learning
+            </p>
+            <h2 className="max-w-2xl text-2xl font-semibold leading-tight tracking-[-0.03em] md:text-4xl">
+              I write about the problems, decisions, and lessons behind the work.
+            </h2>
+          </div>
+          <Link href="/blog" className="group inline-flex items-center gap-3 text-sm font-semibold">
+            Read the blog
+            <span className="transition-transform group-hover:translate-x-1" aria-hidden="true">
+              →
+            </span>
+          </Link>
+        </section>
+
+        <div className="mt-16 flex justify-center">
+          <SocialLinks />
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
