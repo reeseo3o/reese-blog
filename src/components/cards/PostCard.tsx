@@ -21,7 +21,7 @@ export default function PostCard({ post, priority = false }: PostCardProps) {
 
   return (
     <Link href={`/blog/${post.slug}`} className="group block h-full">
-      <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-background transition-[border-color,transform] duration-300 group-hover:-translate-y-1 group-hover:border-accent/50">
+      <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-background transition-[border-color,transform] duration-300 group-hover:-translate-y-1 group-hover:border-foreground/40 group-focus-visible:border-accent">
         {post.thumbnail && (
           <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted/10">
             <SafeImage

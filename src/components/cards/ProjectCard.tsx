@@ -11,14 +11,14 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project }: ProjectCardProps) {
   return (
-    <Link href={`/projects/${project.slug}`}>
+    <Link href={`/projects/${project.slug}`} className="group block h-full">
       <motion.article
-        className="group cursor-pointer h-full"
+        className="h-full cursor-pointer"
         whileHover={{ y: -12 }}
         transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
       >
         <div
-          className="h-full gradient-border glass-strong rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-accent/40"
+          className="gradient-border glass-strong h-full overflow-hidden rounded-xl border-2 border-border/80 transition-[border-color,box-shadow] duration-500 group-hover:border-foreground/40 group-hover:shadow-2xl group-focus-visible:border-accent"
           style={{ boxShadow: '0 8px 30px var(--hover-shadow)' }}
         >
           {project.thumbnail && (

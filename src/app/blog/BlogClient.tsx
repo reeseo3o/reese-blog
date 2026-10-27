@@ -185,10 +185,17 @@ export default function BlogClient({
             {hasMore && <div ref={observerTarget} className="h-20" aria-hidden="true" />}
 
             {loadingMore && hasMore && (
-              <div className="flex justify-center items-center py-8">
-                <div className="flex items-center space-x-2 text-muted">
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-accent border-t-transparent"></div>
-                  <span className="text-sm">더 많은 포스트를 불러오는 중...</span>
+              <div className="mt-6">
+                <span className="sr-only" role="status" aria-live="polite">
+                  더 많은 포스트를 불러오는 중입니다.
+                </span>
+                <div
+                  className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+                  aria-hidden="true"
+                >
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <PostCardSkeleton key={index} />
+                  ))}
                 </div>
               </div>
             )}
