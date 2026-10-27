@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import PostCard from '@/components/cards/PostCard';
 import OrbBackground from '@/components/three/Background';
@@ -8,20 +7,6 @@ import AnimatedSection from '@/components/common/AnimatedSection';
 import SectionHeader from '@/components/common/SectionHeader';
 import SocialLinks from '@/components/common/SocialLinks';
 import { Post, Project } from '@/lib/types';
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 60 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6 },
-};
-
-const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
 
 interface HomeClientProps {
   posts: Post[];
@@ -32,25 +17,22 @@ export default function HomeClient({ posts }: HomeClientProps) {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden mb-24">
+      <section className="relative min-h-[calc(82svh-5rem)] flex items-center justify-center overflow-hidden mb-12 md:mb-16">
         <OrbBackground />
-        <motion.div
-          className="relative z-20 max-w-[680px] md:max-w-2xl mx-auto px-5 sm:px-6 md:px-12 pt-10 md:pt-14 space-y-6 text-center pointer-events-none"
-          initial="initial"
-          animate="animate"
-          variants={staggerContainer}
-        >
-          <motion.p
-            className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight sm:leading-tight md:leading-snug [text-wrap:balance]"
-            variants={fadeInUp}
-          >
-            Learning through problems growing through learning.
-          </motion.p>
+        <div className="relative z-20 max-w-[620px] mx-auto px-6 sm:px-8 md:px-10 pt-8 md:pt-12 space-y-7 text-center pointer-events-none">
+          <p className="font-mono text-[0.7rem] sm:text-xs font-medium uppercase tracking-[0.24em] text-muted">
+            Frontend Engineer
+          </p>
+          <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-semibold tracking-[-0.04em] leading-[1.12]">
+            <span className="block">I turn complex business</span>
+            <span className="block">needs into simple,</span>
+            <span className="block">resilient products.</span>
+          </h1>
 
-          <motion.div className="flex items-center justify-center gap-6 pointer-events-auto" variants={fadeInUp}>
+          <div className="flex items-center justify-center gap-6 pointer-events-auto">
             <Link
               href="/blog"
-              className="group relative font-medium text-base transition-all duration-300"
+              className="group relative font-medium text-sm sm:text-base transition-colors duration-300"
             >
               <span className="flex items-center gap-2">
                 Blog
@@ -70,8 +52,8 @@ export default function HomeClient({ posts }: HomeClientProps) {
               </span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-foreground group-hover:w-full transition-all duration-300" />
             </Link>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* Recent Posts Section */}

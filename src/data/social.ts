@@ -1,5 +1,3 @@
-import { ReactNode } from 'react';
-
 export interface SocialLink {
   name: string;
   href: string;
@@ -27,4 +25,3 @@ export const socialLinks: SocialLink[] = [
     hoverAnimation: 'rotate',
   },
 ];
-

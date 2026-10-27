@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
 import PostCard from '@/components/cards/PostCard';
 import PostCardSkeleton from '@/components/cards/PostCardSkeleton';
 import { Post } from '@/lib/types';
@@ -28,25 +27,10 @@ export default function BlogClient({
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(initialHasMore);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pageRef = useRef(1);
   const initialLoadRef = useRef(false);
 
   const observerTarget = useRef<HTMLDivElement>(null);
-
-  // 모바일에서 사이드바가 열릴 때 body 스크롤 방지
-  useEffect(() => {
-    if (isSidebarOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    // 컴포넌트 언마운트 시 스타일 초기화
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isSidebarOpen]);
 
   const fetchPosts = useCallback(
     async (pageNum: number, isInitial: boolean = false, tag: string | null = null) => {
@@ -92,13 +76,13 @@ export default function BlogClient({
     // 초기 로드 체크
     if (!initialLoadRef.current) {
       initialLoadRef.current = true;
-      
+
       // 초기 상태 (태그 없음)이고 initialPosts가 있으면 skip
       if (initialPosts.length > 0 && !selectedTag) {
         return;
       }
     }
-    
+
     // 태그가 변경되었거나 데이터가 없으면 fetch
     pageRef.current = 1;
     fetchPosts(1, true, selectedTag);
@@ -127,19 +111,7 @@ export default function BlogClient({
         observer.unobserve(currentTarget);
       }
     };
-  }, [hasMore, loading, loadingMore, fetchPosts]);
-
-  useEffect(() => {
-    if (isSidebarOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isSidebarOpen]);
+  }, [hasMore, loading, loadingMore, fetchPosts, selectedTag]);
 
   const handleTagSelect = (tag: string | null) => {
     if (tag) {
@@ -150,156 +122,99 @@ export default function BlogClient({
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="lg:hidden fixed top-20 left-6 z-50">
-        <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-3 glass rounded-lg hover:bg-accent/10 transition-colors"
-          aria-label="태그 필터 토글"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {isSidebarOpen ? (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            ) : (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            )}
-          </svg>
-        </button>
-      </div>
+    <main className="min-h-screen px-6 py-14 md:px-12 md:py-20">
+      <div className="mx-auto max-w-[1400px]">
+        <header className="mb-10 border-b border-border pb-10 md:mb-12 md:pb-12">
+          <p className="mb-4 font-mono text-xs uppercase tracking-[0.22em] text-muted">
+            Notes on building
+          </p>
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <h1 className="text-5xl font-semibold tracking-[-0.055em] md:text-7xl">Blog.</h1>
+            <p className="max-w-md text-base text-muted md:text-right md:text-lg">
+              개발 경험과 학습한 내용을 기록합니다.
+            </p>
+          </div>
+        </header>
 
-      <div className="flex">
-        <aside
-          className={`
-            fixed lg:sticky top-0 left-0 h-screen lg:h-auto
-            w-64 lg:w-72 transform transition-transform duration-300 ease-in-out
-            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-            z-40 
-            pt-32 lg:pt-24 pb-8 px-6
-            bg-background/95 backdrop-blur-sm lg:bg-transparent
-            lg:overflow-y-auto overflow-y-visible
-          `}
-        >
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="h-full lg:h-auto"
-          >
-            <h2 className="text-lg font-bold mb-6">Tags</h2>
-
-            {tags.length > 0 && (
-              <div className="space-y-2 max-h-[60vh] lg:max-h-[70vh] overflow-y-auto pr-2">
+        {tags.length > 0 && (
+          <nav aria-label="게시글 태그" className="mb-10 md:mb-12">
+            <div className="tag-scroll -mx-6 flex gap-2 overflow-x-auto px-6 pb-2 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+              <button
+                onClick={() => handleTagSelect(null)}
+                aria-pressed={!selectedTag}
+                className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
+                  !selectedTag
+                    ? 'border-foreground bg-foreground text-background'
+                    : 'border-border text-muted hover:border-foreground hover:text-foreground'
+                }`}
+              >
+                All
+              </button>
+              {tags.map((tag) => (
                 <button
-                  onClick={() => {
-                    handleTagSelect(null);
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
-                    !selectedTag ? 'bg-accent text-white' : 'hover:bg-accent/10'
+                  key={tag}
+                  onClick={() => handleTagSelect(tag)}
+                  aria-pressed={selectedTag === tag}
+                  className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
+                    selectedTag === tag
+                      ? 'border-foreground bg-foreground text-background'
+                      : 'border-border text-muted hover:border-foreground hover:text-foreground'
                   }`}
                 >
-                  전체
+                  {tag}
                 </button>
-                {tags.map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => {
-                      handleTagSelect(tag);
-                      setIsSidebarOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
-                      selectedTag === tag ? 'bg-accent text-white' : 'hover:bg-accent/10'
-                    }`}
-                  >
-                    #{tag}
-                  </button>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        </aside>
-
-        {isSidebarOpen && (
-          <div
-            className="lg:hidden fixed inset-0 bg-black/50 z-30"
-            onClick={() => setIsSidebarOpen(false)}
-          />
-        )}
-
-        <main className="flex-1 py-16 px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-12"
-          >
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">Blog.</h1>
-            <p className="text-xl text-muted">개발 경험과 학습한 내용을 기록합니다</p>
-          </motion.div>
-
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Array.from({ length: PAGE_SIZE }).map((_, index) => (
-                <PostCardSkeleton key={index} />
               ))}
             </div>
-          ) : posts.length > 0 ? (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-              >
-                {posts.map((post, index) => (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: Math.min(index * 0.1, 0.5) }}
-                  >
-                    <PostCard post={post} />
-                  </motion.div>
-                ))}
-              </motion.div>
+          </nav>
+        )}
 
-              {hasMore && <div ref={observerTarget} className="h-20" aria-hidden="true" />}
-
-              {loadingMore && hasMore && (
-                <div className="flex justify-center items-center py-8">
-                  <div className="flex items-center space-x-2 text-muted">
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-accent border-t-transparent"></div>
-                    <span className="text-sm">더 많은 포스트를 불러오는 중...</span>
-                  </div>
-                </div>
-              )}
-
-              {!hasMore && posts.length > PAGE_SIZE && (
-                <div className="text-center py-8 text-muted">
-                  <p className="text-sm">모든 포스트를 확인했습니다 ✨</p>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-16 text-muted">
-              <p>아직 작성된 글이 없습니다.</p>
-              <p className="text-sm mt-2">
-                Notion 데이터베이스에 Type을 &apos;blog&apos;로 설정한 페이지를 추가해보세요!
-              </p>
+        {loading ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: PAGE_SIZE }).map((_, index) => (
+              <PostCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : posts.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {posts.map((post, index) => (
+                <PostCard key={post.id} post={post} priority={index === 0} />
+              ))}
             </div>
-          )}
-        </main>
+
+            {hasMore && <div ref={observerTarget} className="h-20" aria-hidden="true" />}
+
+            {loadingMore && hasMore && (
+              <div className="mt-6">
+                <span className="sr-only" role="status" aria-live="polite">
+                  더 많은 포스트를 불러오는 중입니다.
+                </span>
+                <div
+                  className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+                  aria-hidden="true"
+                >
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <PostCardSkeleton key={index} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!hasMore && posts.length > PAGE_SIZE && (
+              <div className="text-center py-8 text-muted">
+                <p className="text-sm">모든 포스트를 확인했습니다 ✨</p>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-16 text-muted">
+            <p>아직 작성된 글이 없습니다.</p>
+            <p className="text-sm mt-2">
+              Notion 데이터베이스에 Type을 &apos;blog&apos;로 설정한 페이지를 추가해보세요!
+            </p>
+          </div>
+        )}
       </div>
-    </div>
+    </main>
   );
 }

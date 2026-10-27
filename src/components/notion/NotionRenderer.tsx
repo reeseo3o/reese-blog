@@ -3,9 +3,10 @@
 import { NotionBlock as NotionBlockType } from '@/lib/types';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type ReactNode } from 'react';
 import mermaid from 'mermaid';
 import SafeImage from '@/components/SafeImage';
+import { useTheme } from '@/components/providers/ThemeProvider';
 
 interface NotionRendererProps {
   blocks: NotionBlockType[];
@@ -38,45 +39,78 @@ interface RichTextItem {
 }
 
 export default function NotionRenderer({ blocks }: NotionRendererProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   if (!blocks || blocks.length === 0) {
     return <div className="text-muted">콘텐츠가 없습니다.</div>;
   }
 
   return (
-    <div className="notion-content prose prose-lg dark:prose-invert max-w-none">
-      {blocks.map((block) => (
-        <NotionBlock key={block.id} block={block} />
-      ))}
+    <div className="notion-content prose prose-lg max-w-none dark:prose-invert">
+      {renderBlocks(blocks, isDark)}
     </div>
   );
 }
 
-function NotionBlock({ block }: { block: NotionBlockType }) {
+function renderBlocks(
+  blocks: NotionBlockType[],
+  isDark: boolean,
+  isNestedList: boolean = false,
+): ReactNode[] {
+  const renderedBlocks: ReactNode[] = [];
+
+  for (let index = 0; index < blocks.length; ) {
+    const block = blocks[index];
+    const isListItem = block.type === 'bulleted_list_item' || block.type === 'numbered_list_item';
+
+    if (!isListItem) {
+      renderedBlocks.push(<NotionBlock key={block.id} block={block} isDark={isDark} />);
+      index += 1;
+      continue;
+    }
+
+    const listType = block.type;
+    const listItems: NotionBlockType[] = [];
+
+    while (index < blocks.length && blocks[index].type === listType) {
+      listItems.push(blocks[index]);
+      index += 1;
+    }
+
+    const listClassName =
+      listType === 'bulleted_list_item'
+        ? `${isNestedList ? 'my-2' : 'my-6'} list-disc space-y-2 pl-6 marker:text-muted`
+        : `${isNestedList ? 'my-2' : 'my-6'} list-decimal space-y-2 pl-6 marker:font-mono marker:text-muted`;
+    const listChildren = listItems.map((listItem) => (
+      <NotionBlock key={listItem.id} block={listItem} isDark={isDark} />
+    ));
+
+    renderedBlocks.push(
+      listType === 'bulleted_list_item' ? (
+        <ul key={`list-${block.id}`} className={listClassName}>
+          {listChildren}
+        </ul>
+      ) : (
+        <ol key={`list-${block.id}`} className={listClassName}>
+          {listChildren}
+        </ol>
+      ),
+    );
+  }
+
+  return renderedBlocks;
+}
+
+function NotionBlock({ block, isDark }: { block: NotionBlockType; isDark: boolean }) {
   const { type } = block;
   const value = block[type] as BlockValue | undefined;
-  const [isDark, setIsDark] = useState(false);
   const children = (block.children as NotionBlockType[] | undefined) ?? [];
-
-  useEffect(() => {
-    const checkDarkMode = () => {
-      setIsDark(document.documentElement.classList.contains('dark'));
-    };
-
-    checkDarkMode();
-
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-
-    return () => observer.disconnect();
-  }, []);
 
   switch (type) {
     case 'paragraph':
       return (
-        <p className="my-1">
+        <p className="my-5 leading-8">
           <RichText richText={value?.rich_text} />
         </p>
       );
@@ -85,91 +119,95 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       if (value?.is_toggleable && children.length > 0) {
         return (
           <details className="group my-6 rounded-lg border border-border/50 bg-muted/5 transition-all hover:bg-muted/10">
-            <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-4 text-3xl font-bold hover:bg-accent/5 rounded-lg transition-colors">
-              <span className="text-2xl text-accent transition-transform duration-200 group-open:rotate-90 flex-shrink-0">
-                ▶
-              </span>
-              <span className="flex-1">
-                <RichText richText={value?.rich_text} />
-              </span>
+            <summary className="cursor-pointer list-none rounded-lg px-5 py-4 text-3xl font-bold transition-colors hover:bg-accent/5">
+              <h2 className="m-0 flex items-center gap-3 text-[inherit] font-[inherit] leading-[inherit]">
+                <span
+                  className="flex-shrink-0 text-2xl text-accent transition-transform duration-200 group-open:rotate-90"
+                  aria-hidden="true"
+                >
+                  ▶
+                </span>
+                <span className="flex-1">
+                  <RichText richText={value?.rich_text} />
+                </span>
+              </h2>
             </summary>
             <div className="px-5 pb-4 pt-2 space-y-3 border-t border-border/30 mt-2">
-              {children.map((child) => (
-                <NotionBlock key={child.id} block={child} />
-              ))}
+              {renderBlocks(children, isDark)}
             </div>
           </details>
         );
       }
       return (
-        <h1 className="text-4xl font-bold mt-8 mb-4">
+        <h2 className="mb-6 mt-16 text-3xl font-semibold leading-tight tracking-[-0.035em] md:text-4xl">
           <RichText richText={value?.rich_text} />
-        </h1>
+        </h2>
       );
 
     case 'heading_2':
       if (value?.is_toggleable && children.length > 0) {
         return (
           <details className="group my-5 rounded-lg border border-border/50 bg-muted/5 transition-all hover:bg-muted/10">
-            <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-2xl font-bold hover:bg-accent/5 rounded-lg transition-colors">
-              <span className="text-xl text-accent transition-transform duration-200 group-open:rotate-90 flex-shrink-0">
-                ▶
-              </span>
-              <span className="flex-1">
-                <RichText richText={value?.rich_text} />
-              </span>
+            <summary className="cursor-pointer list-none rounded-lg px-4 py-3 text-2xl font-bold transition-colors hover:bg-accent/5">
+              <h3 className="m-0 flex items-center gap-3 text-[inherit] font-[inherit] leading-[inherit]">
+                <span
+                  className="flex-shrink-0 text-xl text-accent transition-transform duration-200 group-open:rotate-90"
+                  aria-hidden="true"
+                >
+                  ▶
+                </span>
+                <span className="flex-1">
+                  <RichText richText={value?.rich_text} />
+                </span>
+              </h3>
             </summary>
             <div className="px-4 pb-3 pt-2 space-y-3 border-t border-border/30 mt-2">
-              {children.map((child) => (
-                <NotionBlock key={child.id} block={child} />
-              ))}
+              {renderBlocks(children, isDark)}
             </div>
           </details>
         );
       }
       return (
-        <h2 className="text-3xl font-bold mt-6 mb-3">
+        <h3 className="mb-5 mt-14 text-2xl font-semibold leading-tight tracking-[-0.03em] md:text-3xl">
           <RichText richText={value?.rich_text} />
-        </h2>
+        </h3>
       );
 
     case 'heading_3':
       if (value?.is_toggleable && children.length > 0) {
         return (
           <details className="group my-4 rounded-lg border border-border/50 bg-muted/5 transition-all hover:bg-muted/10">
-            <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-xl font-semibold hover:bg-accent/5 rounded-lg transition-colors">
-              <span className="text-lg text-accent transition-transform duration-200 group-open:rotate-90 flex-shrink-0">
-                ▶
-              </span>
-              <span className="flex-1">
-                <RichText richText={value?.rich_text} />
-              </span>
+            <summary className="cursor-pointer list-none rounded-lg px-4 py-3 text-xl font-semibold transition-colors hover:bg-accent/5">
+              <h4 className="m-0 flex items-center gap-3 text-[inherit] font-[inherit] leading-[inherit]">
+                <span
+                  className="flex-shrink-0 text-lg text-accent transition-transform duration-200 group-open:rotate-90"
+                  aria-hidden="true"
+                >
+                  ▶
+                </span>
+                <span className="flex-1">
+                  <RichText richText={value?.rich_text} />
+                </span>
+              </h4>
             </summary>
             <div className="px-4 pb-3 pt-2 space-y-3 border-t border-border/30 mt-2">
-              {children.map((child) => (
-                <NotionBlock key={child.id} block={child} />
-              ))}
+              {renderBlocks(children, isDark)}
             </div>
           </details>
         );
       }
       return (
-        <h3 className="text-2xl font-semibold mt-5 mb-2">
+        <h4 className="mb-4 mt-10 text-xl font-semibold leading-snug tracking-[-0.02em] md:text-2xl">
           <RichText richText={value?.rich_text} />
-        </h3>
+        </h4>
       );
 
     case 'bulleted_list_item':
-      return (
-        <li className="ml-4">
-          <RichText richText={value?.rich_text} />
-        </li>
-      );
-
     case 'numbered_list_item':
       return (
-        <li className="ml-4">
+        <li className="pl-1 leading-8">
           <RichText richText={value?.rich_text} />
+          {children.length > 0 && renderBlocks(children, isDark, true)}
         </li>
       );
 
@@ -190,9 +228,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
       return <hr className="my-8 border-border" />;
 
     case 'image':
-      const imageSrc = value?.file?.url 
-        ? `/api/blocks/${block.id}/image` 
-        : value?.external?.url;
+      const imageSrc = value?.file?.url ? `/api/blocks/${block.id}/image` : value?.external?.url;
       const caption = value?.caption?.[0]?.plain_text;
       return (
         <figure className="my-6">
@@ -226,9 +262,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
           </summary>
           {children && children.length > 0 && (
             <div className="space-y-3 border-t border-border/50 px-4 py-4">
-              {children.map((child) => (
-                <NotionBlock key={child.id} block={child} />
-              ))}
+              {renderBlocks(children, isDark)}
             </div>
           )}
         </details>
@@ -236,15 +270,15 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
 
     case 'table':
       if (!children || children.length === 0) return null;
-      
+
       const tableRows = children.filter((row) => row.type === 'table_row');
       if (tableRows.length === 0) return null;
-      
+
       const headerRow = tableRows[0];
       const bodyRows = tableRows.slice(1);
       const headerRowValue = headerRow[headerRow.type] as BlockValue | undefined;
       const headerCells = headerRowValue?.cells || [];
-      
+
       return (
         <div className="my-6 overflow-x-auto">
           <table className="w-full border-collapse border border-border/50 rounded-lg overflow-hidden">
@@ -266,9 +300,12 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
               {bodyRows.map((row) => {
                 const rowValue = row[row.type] as BlockValue | undefined;
                 const cells = rowValue?.cells || [];
-                
+
                 return (
-                  <tr key={row.id} className="border-b border-border/50 last:border-b-0 hover:bg-muted/10 transition-colors">
+                  <tr
+                    key={row.id}
+                    className="border-b border-border/50 last:border-b-0 hover:bg-muted/10 transition-colors"
+                  >
                     {cells.map((cell, cellIndex) => (
                       <td
                         key={cellIndex}
@@ -323,11 +360,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
           <div className="flex-1">
             <RichText richText={value?.rich_text} />
             {children && children.length > 0 && (
-              <div className="mt-2 space-y-2">
-                {children.map((child) => (
-                  <NotionBlock key={child.id} block={child} />
-                ))}
-              </div>
+              <div className="mt-2 space-y-2">{renderBlocks(children, isDark)}</div>
             )}
           </div>
         </div>
@@ -336,29 +369,19 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
     case 'column_list':
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-6">
-          {children.map((child) => (
-            <NotionBlock key={child.id} block={child} />
-          ))}
+          {renderBlocks(children, isDark)}
         </div>
       );
 
     case 'column':
-      return (
-        <div className="space-y-3">
-          {children.map((child) => (
-            <NotionBlock key={child.id} block={child} />
-          ))}
-        </div>
-      );
+      return <div className="space-y-3">{renderBlocks(children, isDark)}</div>;
 
     case 'video':
-      const videoSrc = value?.file?.url 
-        ? `/api/blocks/${block.id}/image`
-        : value?.external?.url;
+      const videoSrc = value?.file?.url ? `/api/blocks/${block.id}/image` : value?.external?.url;
       if (!videoSrc) return null;
-      
+
       const isExternalVideo = !!value?.external?.url;
-      
+
       return (
         <figure className="my-6">
           {isExternalVideo ? (
@@ -371,11 +394,7 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
               />
             </div>
           ) : (
-            <video
-              src={videoSrc}
-              controls
-              className="w-full rounded-lg"
-            />
+            <video src={videoSrc} controls className="w-full rounded-lg" />
           )}
           {value?.caption?.[0]?.plain_text && (
             <figcaption className="text-center text-sm text-muted mt-2">
@@ -410,23 +429,16 @@ function NotionBlock({ block }: { block: NotionBlockType }) {
 
       return (
         <div className="my-6 border border-border/50 rounded-lg overflow-hidden">
-          <iframe
-            src={embedUrl}
-            className="w-full h-96"
-            allowFullScreen
-            title="Embed"
-          />
+          <iframe src={embedUrl} className="w-full h-96" allowFullScreen title="Embed" />
         </div>
       );
 
     case 'file':
     case 'pdf':
       // Notion 내부 파일은 API 프록시 사용
-      const fileUrl = value?.file?.url 
-        ? `/api/blocks/${block.id}/image`
-        : value?.external?.url;
+      const fileUrl = value?.file?.url ? `/api/blocks/${block.id}/image` : value?.external?.url;
       const fileName = value?.caption?.[0]?.plain_text || 'Download File';
-      
+
       if (!fileUrl) return null;
 
       return (
@@ -533,7 +545,7 @@ function MermaidDiagram({ chart, isDark }: { chart: string; isDark: boolean }) {
   }, [chart, isDark]);
 
   return (
-    <div className="my-6 rounded-lg overflow-hidden border border-border/50 bg-white dark:bg-gray-900">
+    <div className="my-6 rounded-lg overflow-hidden border border-border/50 bg-background">
       <div className="bg-muted/10 px-4 py-2 border-b border-border/50">
         <span className="text-xs font-mono text-muted uppercase">MERMAID</span>
       </div>

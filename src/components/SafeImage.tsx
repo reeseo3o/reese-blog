@@ -21,7 +21,6 @@ export default function SafeImage({
 }: Props) {
   const [currentSrc, setCurrentSrc] = useState(src);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
   const retryCountRef = useRef(0);
   const imageKeyRef = useRef(0);
 
@@ -30,7 +29,6 @@ export default function SafeImage({
   useEffect(() => {
     setCurrentSrc(src);
     setIsLoading(true);
-    setHasError(false);
     retryCountRef.current = 0;
     imageKeyRef.current += 1;
   }, [src]);
@@ -41,25 +39,25 @@ export default function SafeImage({
 
   const handleLoad = useCallback(() => {
     setIsLoading(false);
-    setHasError(false);
   }, []);
 
   const scheduleRetry = useCallback(() => {
-    setHasError(true);
-    
     if (retryCountRef.current >= maxRetries) {
       setCurrentSrc(resolvedFallback);
       setIsLoading(true);
       return;
     }
-    
+
     retryCountRef.current += 1;
     setIsLoading(true);
-    
+
     // URL에 타임스탬프 추가하여 재시도
     const original = typeof src === 'string' ? src : String(src);
     try {
-      const url = new URL(original, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
+      const url = new URL(
+        original,
+        typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
+      );
       url.searchParams.set('_t', Date.now().toString());
       const next = url.toString();
 
@@ -85,5 +83,3 @@ export default function SafeImage({
     />
   );
 }
-
-
