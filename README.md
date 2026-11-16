@@ -23,9 +23,11 @@ cp .env.example .env.local
 ```
 
 필수 환경 변수:
+
 - `NOTION_TOKEN`: Notion API 토큰
 - `NOTION_DATABASE_ID`: Notion 블로그 데이터베이스 ID
 - `NEXT_PUBLIC_SITE_URL`: 사이트 URL
+- `REVALIDATE_SECRET`: Notion 콘텐츠 캐시 재검증 endpoint 인증 토큰
 - `GISCUS_REPO`: Giscus 댓글 저장소 (선택)
 
 ### 개발 서버 실행
@@ -35,6 +37,19 @@ pnpm dev
 ```
 
 브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 확인하세요.
+
+### Notion 콘텐츠 캐시 재검증
+
+게시글을 발행하거나 수정한 뒤 캐시를 즉시 갱신하려면 다음 endpoint를 호출합니다.
+
+```bash
+curl -X POST https://your-domain.com/api/revalidate \
+  -H "Authorization: Bearer $REVALIDATE_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"post-slug"}'
+```
+
+본문 없이 호출하면 전체 게시글 목록과 상세 페이지 캐시를 재검증합니다.
 
 ## 스크립트
 

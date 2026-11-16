@@ -5,6 +5,13 @@ import type {
   QueryDataSourceResponse,
   DataSourceObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints';
+import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
+import {
+  NOTION_BLOCKS_CACHE_TAG,
+  NOTION_CACHE_REVALIDATE_SECONDS,
+  NOTION_POSTS_CACHE_TAG,
+} from '@/lib/notion-cache';
 import { Post, NotionBlock as NotionBlockType } from '@/lib/types';
 
 const notion = new Client({
@@ -43,7 +50,7 @@ async function getPropertyNamesFromActualData(
     return mapping;
   } catch (error) {
     console.error('[Notion] 실제 데이터에서 속성 이름 추출 실패:', error);
-    return {};
+    throw error;
   }
 }
 
@@ -97,6 +104,7 @@ async function getDatabasePropertyNames(databaseId: string): Promise<{ [key: str
       }
     } catch (fallbackError) {
       console.error('❌ [Notion] Fallback도 실패:', fallbackError);
+      throw fallbackError;
     }
 
     return {};
@@ -122,10 +130,9 @@ async function getDataSourceId(databaseId: string): Promise<string> {
   }
 }
 
-
 function getStringPropertyValue(property: PageObjectResponse['properties'][string]): string {
   if (!property) return '';
-  
+
   switch (property.type) {
     case 'title':
       return property.title?.map((t) => t.plain_text).join('') || '';
@@ -146,7 +153,7 @@ function getStringPropertyValue(property: PageObjectResponse['properties'][strin
 
 function getStringArrayPropertyValue(property: PageObjectResponse['properties'][string]): string[] {
   if (!property) return [];
-  
+
   switch (property.type) {
     case 'multi_select':
       return property.multi_select?.map((s) => s.name) || [];
@@ -155,9 +162,11 @@ function getStringArrayPropertyValue(property: PageObjectResponse['properties'][
   }
 }
 
-function getDatePropertyValue(property: PageObjectResponse['properties'][string]): { start: string } | null {
+function getDatePropertyValue(
+  property: PageObjectResponse['properties'][string],
+): { start: string } | null {
   if (!property) return null;
-  
+
   switch (property.type) {
     case 'date':
       return property.date;
@@ -166,7 +175,7 @@ function getDatePropertyValue(property: PageObjectResponse['properties'][string]
   }
 }
 
-export async function getPosts(): Promise<Post[]> {
+async function fetchPostsFromNotion(): Promise<Post[]> {
   try {
     if (!DATABASE_ID) {
       throw new Error('NOTION_DATABASE_ID가 설정되지 않았습니다.');
@@ -192,11 +201,7 @@ export async function getPosts(): Promise<Post[]> {
       allPages = allPages.concat(pages);
       hasMore = response.has_more;
       startCursor = response.next_cursor || undefined;
-
-      
     }
-
-    
 
     const posts = allPages.map((page) => {
       const props = page.properties;
@@ -227,8 +232,6 @@ export async function getPosts(): Promise<Post[]> {
       return dateB - dateA;
     });
 
-    
-
     return sortedPosts;
   } catch (error: unknown) {
     if (isNotionClientError(error)) {
@@ -248,7 +251,14 @@ export async function getPosts(): Promise<Post[]> {
   }
 }
 
-export async function getPostBySlug(slug: string): Promise<Post | null> {
+const getCachedPosts = unstable_cache(fetchPostsFromNotion, ['notion-posts'], {
+  revalidate: NOTION_CACHE_REVALIDATE_SECONDS,
+  tags: [NOTION_POSTS_CACHE_TAG],
+});
+
+export const getPosts = cache(getCachedPosts);
+
+async function fetchPostBySlugFromNotion(slug: string): Promise<Post | null> {
   try {
     if (!DATABASE_ID) {
       throw new Error('NOTION_DATABASE_ID가 설정되지 않았습니다.');
@@ -261,7 +271,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     if (!slugPropertyName) {
       console.error('⚠️ [Notion] Slug 속성을 찾을 수 없습니다.');
       console.error('    사용 가능한 속성:', Object.keys(propertyNames));
-      const allPosts = await getPosts();
+      const allPosts = await fetchPostsFromNotion();
       return allPosts.find((p) => p.slug === slug) || null;
     }
 
@@ -292,7 +302,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
       };
     } else {
       console.warn('⚠️ [Notion] 알 수 없는 Slug 속성 타입:', slugPropertyType);
-      const allPosts = await getPosts();
+      const allPosts = await fetchPostsFromNotion();
       return allPosts.find((p) => p.slug === slug) || null;
     }
 
@@ -302,7 +312,6 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     });
 
     if (response.results.length === 0) {
-      
       return null;
     }
 
@@ -333,9 +342,16 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     } else {
       console.error('❌ [Notion] 알 수 없는 에러:', error);
     }
-    return null;
+    throw error;
   }
 }
+
+const getCachedPostBySlug = unstable_cache(fetchPostBySlugFromNotion, ['notion-post-by-slug'], {
+  revalidate: NOTION_CACHE_REVALIDATE_SECONDS,
+  tags: [NOTION_POSTS_CACHE_TAG],
+});
+
+export const getPostBySlug = cache(getCachedPostBySlug);
 
 async function getBlocksRecursively(blockId: string): Promise<NotionBlockType[]> {
   const blocks: NotionBlockType[] = [];
@@ -354,9 +370,8 @@ async function getBlocksRecursively(blockId: string): Promise<NotionBlockType[]>
         try {
           block.children = await getBlocksRecursively(block.id);
         } catch (error) {
-          // children이 없거나 가져올 수 없는 경우 빈 배열로 설정
           console.warn(`[Notion] Failed to fetch children for block ${block.id}:`, error);
-          block.children = [];
+          throw error;
         }
       }
       blocks.push(block);
@@ -372,27 +387,37 @@ async function getBlocksRecursively(blockId: string): Promise<NotionBlockType[]>
   return blocks;
 }
 
-export async function getPageBlocks(pageId: string): Promise<NotionBlockType[]> {
+async function fetchPageBlocksFromNotion(pageId: string): Promise<NotionBlockType[]> {
   try {
     return await getBlocksRecursively(pageId);
   } catch (error) {
     console.error('Error fetching page blocks:', error);
-    return [];
+    throw error;
   }
 }
 
-export function extractDescriptionFromBlocks(blocks: NotionBlockType[], maxLength: number = 160): string {
+const getCachedPageBlocks = unstable_cache(fetchPageBlocksFromNotion, ['notion-page-blocks'], {
+  revalidate: NOTION_CACHE_REVALIDATE_SECONDS,
+  tags: [NOTION_BLOCKS_CACHE_TAG],
+});
+
+export const getPageBlocks = cache(getCachedPageBlocks);
+
+export function extractDescriptionFromBlocks(
+  blocks: NotionBlockType[],
+  maxLength: number = 160,
+): string {
   for (const block of blocks) {
     if (block.type === 'paragraph') {
-      const paragraph = block as unknown as { 
-        type: 'paragraph'; 
-        paragraph: { rich_text: Array<{ plain_text: string }> } 
+      const paragraph = block as unknown as {
+        type: 'paragraph';
+        paragraph: { rich_text: Array<{ plain_text: string }> };
       };
-      const text = paragraph.paragraph?.rich_text?.map(t => t.plain_text).join('') || '';
+      const text = paragraph.paragraph?.rich_text?.map((t) => t.plain_text).join('') || '';
       if (text.trim()) {
         const trimmedText = text.trim();
-        return trimmedText.length > maxLength 
-          ? trimmedText.slice(0, maxLength) + '...' 
+        return trimmedText.length > maxLength
+          ? trimmedText.slice(0, maxLength) + '...'
           : trimmedText;
       }
     }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
 import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import { MEDIA_BROWSER_CACHE_CONTROL, MEDIA_CDN_CACHE_CONTROL } from '@/lib/media-cache';
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN || process.env.NOTION_API_KEY,
@@ -8,15 +9,15 @@ const notion = new Client({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ pageId: string }> }
+  { params }: { params: Promise<{ pageId: string }> },
 ) {
   try {
     const { pageId } = await params;
 
-    const page = await notion.pages.retrieve({ page_id: pageId }) as PageObjectResponse;
-    
+    const page = (await notion.pages.retrieve({ page_id: pageId })) as PageObjectResponse;
+
     const thumbnailProp = page.properties.Thumbnail || page.properties.thumbnail;
-    
+
     if (!thumbnailProp || thumbnailProp.type !== 'files') {
       return NextResponse.json({ error: 'No thumbnail found' }, { status: 404 });
     }
@@ -30,7 +31,7 @@ export async function GET(
     const imageUrl = 'external' in file ? file.external.url : file.file.url;
 
     const imageResponse = await fetch(imageUrl);
-    
+
     if (!imageResponse.ok) {
       return NextResponse.json({ error: 'Failed to fetch image' }, { status: 500 });
     }
@@ -41,7 +42,8 @@ export async function GET(
     return new NextResponse(imageBuffer, {
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+        'Cache-Control': MEDIA_BROWSER_CACHE_CONTROL,
+        'Vercel-CDN-Cache-Control': MEDIA_CDN_CACHE_CONTROL,
       },
     });
   } catch (error) {
@@ -49,4 +51,3 @@ export async function GET(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

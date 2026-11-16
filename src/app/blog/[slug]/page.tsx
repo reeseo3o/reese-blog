@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getPostBySlug, getPageBlocks, getPosts, extractDescriptionFromBlocks } from '@/lib/notion';
+import { getPostBySlug, getPageBlocks, extractDescriptionFromBlocks } from '@/lib/notion';
 import NotionRenderer from '@/components/notion/NotionRenderer';
 import Comments from '@/components/Comments';
 import type { Metadata } from 'next';
@@ -10,13 +10,10 @@ interface Props {
 
 export const revalidate = 1800;
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  const posts = await getPosts();
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
+  return [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

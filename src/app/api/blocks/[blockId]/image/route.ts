@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
+import { MEDIA_BROWSER_CACHE_CONTROL, MEDIA_CDN_CACHE_CONTROL } from '@/lib/media-cache';
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN || process.env.NOTION_API_KEY,
@@ -18,28 +19,30 @@ interface FileBlock {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ blockId: string }> }
+  { params }: { params: Promise<{ blockId: string }> },
 ) {
   try {
     const { blockId } = await params;
 
-    const block = await notion.blocks.retrieve({ block_id: blockId }) as FileBlock;
-    
+    const block = (await notion.blocks.retrieve({ block_id: blockId })) as FileBlock;
+
     const blockType = block.type;
-    const blockData = block[blockType] as { file?: { url: string }; external?: { url: string } } | undefined;
-    
+    const blockData = block[blockType] as
+      | { file?: { url: string }; external?: { url: string } }
+      | undefined;
+
     if (!blockData) {
       return NextResponse.json({ error: 'Block data not found' }, { status: 404 });
     }
 
     const fileUrl = blockData.file?.url || blockData.external?.url;
-    
+
     if (!fileUrl) {
       return NextResponse.json({ error: 'No file URL found' }, { status: 404 });
     }
 
     const fileResponse = await fetch(fileUrl);
-    
+
     if (!fileResponse.ok) {
       return NextResponse.json({ error: 'Failed to fetch file' }, { status: 500 });
     }
@@ -50,7 +53,8 @@ export async function GET(
     return new NextResponse(fileBuffer, {
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+        'Cache-Control': MEDIA_BROWSER_CACHE_CONTROL,
+        'Vercel-CDN-Cache-Control': MEDIA_CDN_CACHE_CONTROL,
       },
     });
   } catch (error) {
@@ -58,4 +62,3 @@ export async function GET(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
