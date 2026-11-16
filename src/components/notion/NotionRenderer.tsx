@@ -5,7 +5,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import mermaid from 'mermaid';
-import SafeImage from '@/components/SafeImage';
+import NotionImage from '@/components/notion/NotionImage';
 import { useTheme } from '@/components/providers/ThemeProvider';
 
 interface NotionRendererProps {
@@ -232,17 +232,7 @@ function NotionBlock({ block, isDark }: { block: NotionBlockType; isDark: boolea
       const caption = value?.caption?.[0]?.plain_text;
       return (
         <figure className="my-6">
-          {imageSrc && (
-            <SafeImage
-              src={imageSrc}
-              alt={caption || ''}
-              width={800}
-              height={600}
-              className="rounded-lg mx-auto max-w-full h-auto max-h-[70vh] object-contain"
-              maxRetries={2}
-              retryDelayMs={800}
-            />
-          )}
+          {imageSrc && <NotionImage src={imageSrc} alt={caption || ''} />}
           {caption && (
             <figcaption className="text-center text-sm text-muted mt-2">{caption}</figcaption>
           )}
