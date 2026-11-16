@@ -2,6 +2,7 @@
 
 import Image, { ImageProps } from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { buildRetryImageSrc } from '@/lib/image-retry';
 
 type Props = Omit<ImageProps, 'onError' | 'onLoad'> & {
   fallbackSrc?: string;
@@ -54,12 +55,11 @@ export default function SafeImage({
     // URL에 타임스탬프 추가하여 재시도
     const original = typeof src === 'string' ? src : String(src);
     try {
-      const url = new URL(
+      const next = buildRetryImageSrc(
         original,
+        Date.now(),
         typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
       );
-      url.searchParams.set('_t', Date.now().toString());
-      const next = url.toString();
 
       setTimeout(() => {
         setCurrentSrc(next);
