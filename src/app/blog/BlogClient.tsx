@@ -14,6 +14,32 @@ interface BlogClientProps {
   initialHasMore?: boolean;
 }
 
+interface FailedRequest {
+  pageNum: number;
+  isInitial: boolean;
+}
+
+interface PostsLoadErrorProps {
+  message: string;
+  onRetry: () => void;
+  className: string;
+}
+
+function PostsLoadError({ message, onRetry, className }: PostsLoadErrorProps) {
+  return (
+    <div className={`${className} text-center text-muted`} role="alert">
+      <p className="text-sm">{message}</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="mt-3 cursor-pointer rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-foreground"
+      >
+        다시 시도
+      </button>
+    </div>
+  );
+}
+
 export default function BlogClient({
   tags,
   initialPosts = [],
@@ -26,6 +52,7 @@ export default function BlogClient({
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [failedRequest, setFailedRequest] = useState<FailedRequest | null>(null);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const pageRef = useRef(1);
   const initialLoadRef = useRef(false);
@@ -35,6 +62,8 @@ export default function BlogClient({
   const fetchPosts = useCallback(
     async (pageNum: number, isInitial: boolean = false, tag: string | null = null) => {
       try {
+        setFailedRequest(null);
+
         if (isInitial) {
           setLoading(true);
         } else {
@@ -47,19 +76,23 @@ export default function BlogClient({
 
         const response = await fetch(url);
 
-        if (response.ok) {
-          const data = await response.json();
-
-          if (isInitial) {
-            setPosts(data.posts);
-          } else {
-            setPosts((prev) => [...prev, ...data.posts]);
-          }
-
-          setHasMore(data.hasMore);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch posts: ${response.status}`);
         }
+
+        const data = await response.json();
+
+        if (isInitial) {
+          setPosts(data.posts);
+        } else {
+          setPosts((prev) => [...prev, ...data.posts]);
+          pageRef.current = pageNum;
+        }
+
+        setHasMore(data.hasMore);
       } catch (error) {
         console.error('Error fetching posts:', error);
+        setFailedRequest({ pageNum, isInitial });
       } finally {
         if (isInitial) {
           setLoading(false);
@@ -85,17 +118,17 @@ export default function BlogClient({
 
     // 태그가 변경되었거나 데이터가 없으면 fetch
     pageRef.current = 1;
-    fetchPosts(1, true, selectedTag);
+    void fetchPosts(1, true, selectedTag);
   }, [selectedTag, initialPosts.length, fetchPosts]);
 
   useEffect(() => {
-    if (!hasMore || loading || loadingMore) return;
+    if (!hasMore || loading || loadingMore || failedRequest) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          pageRef.current += 1;
-          fetchPosts(pageRef.current, false, selectedTag);
+          const nextPage = pageRef.current + 1;
+          void fetchPosts(nextPage, false, selectedTag);
         }
       },
       { threshold: 0.1 },
@@ -111,7 +144,13 @@ export default function BlogClient({
         observer.unobserve(currentTarget);
       }
     };
-  }, [hasMore, loading, loadingMore, fetchPosts, selectedTag]);
+  }, [hasMore, loading, loadingMore, failedRequest, fetchPosts, selectedTag]);
+
+  const handleRetry = () => {
+    if (!failedRequest) return;
+
+    void fetchPosts(failedRequest.pageNum, failedRequest.isInitial, selectedTag);
+  };
 
   const handleTagSelect = (tag: string | null) => {
     if (tag) {
@@ -174,6 +213,12 @@ export default function BlogClient({
               <PostCardSkeleton key={index} />
             ))}
           </div>
+        ) : failedRequest?.isInitial ? (
+          <PostsLoadError
+            message="포스트를 불러오지 못했습니다."
+            onRetry={handleRetry}
+            className="py-16"
+          />
         ) : posts.length > 0 ? (
           <>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -191,6 +236,14 @@ export default function BlogClient({
                   <span className="text-sm">더 많은 포스트를 불러오는 중...</span>
                 </div>
               </div>
+            )}
+
+            {failedRequest && (
+              <PostsLoadError
+                message="추가 포스트를 불러오지 못했습니다."
+                onRetry={handleRetry}
+                className="py-8"
+              />
             )}
 
             {!hasMore && posts.length > PAGE_SIZE && (
