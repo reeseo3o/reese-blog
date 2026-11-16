@@ -3,7 +3,7 @@
 import { NotionBlock as NotionBlockType } from '@/lib/types';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type ReactNode } from 'react';
 import mermaid from 'mermaid';
 import SafeImage from '@/components/SafeImage';
 import { useTheme } from '@/components/providers/ThemeProvider';
@@ -47,12 +47,59 @@ export default function NotionRenderer({ blocks }: NotionRendererProps) {
   }
 
   return (
-    <div className="notion-content prose prose-lg dark:prose-invert max-w-none">
-      {blocks.map((block) => (
-        <NotionBlock key={block.id} block={block} isDark={isDark} />
-      ))}
+    <div className="notion-content prose prose-lg max-w-none dark:prose-invert">
+      {renderBlocks(blocks, isDark)}
     </div>
   );
+}
+
+function renderBlocks(
+  blocks: NotionBlockType[],
+  isDark: boolean,
+  isNestedList: boolean = false,
+): ReactNode[] {
+  const renderedBlocks: ReactNode[] = [];
+
+  for (let index = 0; index < blocks.length; ) {
+    const block = blocks[index];
+    const isListItem = block.type === 'bulleted_list_item' || block.type === 'numbered_list_item';
+
+    if (!isListItem) {
+      renderedBlocks.push(<NotionBlock key={block.id} block={block} isDark={isDark} />);
+      index += 1;
+      continue;
+    }
+
+    const listType = block.type;
+    const listItems: NotionBlockType[] = [];
+
+    while (index < blocks.length && blocks[index].type === listType) {
+      listItems.push(blocks[index]);
+      index += 1;
+    }
+
+    const listClassName =
+      listType === 'bulleted_list_item'
+        ? `${isNestedList ? 'my-2' : 'my-6'} list-disc space-y-2 pl-6 marker:text-muted`
+        : `${isNestedList ? 'my-2' : 'my-6'} list-decimal space-y-2 pl-6 marker:font-mono marker:text-muted`;
+    const listChildren = listItems.map((listItem) => (
+      <NotionBlock key={listItem.id} block={listItem} isDark={isDark} />
+    ));
+
+    renderedBlocks.push(
+      listType === 'bulleted_list_item' ? (
+        <ul key={`list-${block.id}`} className={listClassName}>
+          {listChildren}
+        </ul>
+      ) : (
+        <ol key={`list-${block.id}`} className={listClassName}>
+          {listChildren}
+        </ol>
+      ),
+    );
+  }
+
+  return renderedBlocks;
 }
 
 function NotionBlock({ block, isDark }: { block: NotionBlockType; isDark: boolean }) {
@@ -63,7 +110,7 @@ function NotionBlock({ block, isDark }: { block: NotionBlockType; isDark: boolea
   switch (type) {
     case 'paragraph':
       return (
-        <p className="my-1">
+        <p className="my-5 leading-8">
           <RichText richText={value?.rich_text} />
         </p>
       );
@@ -72,91 +119,95 @@ function NotionBlock({ block, isDark }: { block: NotionBlockType; isDark: boolea
       if (value?.is_toggleable && children.length > 0) {
         return (
           <details className="group my-6 rounded-lg border border-border/50 bg-muted/5 transition-all hover:bg-muted/10">
-            <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-4 text-3xl font-bold hover:bg-accent/5 rounded-lg transition-colors">
-              <span className="text-2xl text-accent transition-transform duration-200 group-open:rotate-90 flex-shrink-0">
-                ▶
-              </span>
-              <span className="flex-1">
-                <RichText richText={value?.rich_text} />
-              </span>
+            <summary className="cursor-pointer list-none rounded-lg px-5 py-4 text-3xl font-bold transition-colors hover:bg-accent/5">
+              <h2 className="m-0 flex items-center gap-3 text-[inherit] font-[inherit] leading-[inherit]">
+                <span
+                  className="flex-shrink-0 text-2xl text-accent transition-transform duration-200 group-open:rotate-90"
+                  aria-hidden="true"
+                >
+                  ▶
+                </span>
+                <span className="flex-1">
+                  <RichText richText={value?.rich_text} />
+                </span>
+              </h2>
             </summary>
             <div className="px-5 pb-4 pt-2 space-y-3 border-t border-border/30 mt-2">
-              {children.map((child) => (
-                <NotionBlock key={child.id} block={child} isDark={isDark} />
-              ))}
+              {renderBlocks(children, isDark)}
             </div>
           </details>
         );
       }
       return (
-        <h1 className="text-4xl font-bold mt-8 mb-4">
+        <h2 className="mb-6 mt-16 text-3xl font-semibold leading-tight tracking-[-0.035em] md:text-4xl">
           <RichText richText={value?.rich_text} />
-        </h1>
+        </h2>
       );
 
     case 'heading_2':
       if (value?.is_toggleable && children.length > 0) {
         return (
           <details className="group my-5 rounded-lg border border-border/50 bg-muted/5 transition-all hover:bg-muted/10">
-            <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-2xl font-bold hover:bg-accent/5 rounded-lg transition-colors">
-              <span className="text-xl text-accent transition-transform duration-200 group-open:rotate-90 flex-shrink-0">
-                ▶
-              </span>
-              <span className="flex-1">
-                <RichText richText={value?.rich_text} />
-              </span>
+            <summary className="cursor-pointer list-none rounded-lg px-4 py-3 text-2xl font-bold transition-colors hover:bg-accent/5">
+              <h3 className="m-0 flex items-center gap-3 text-[inherit] font-[inherit] leading-[inherit]">
+                <span
+                  className="flex-shrink-0 text-xl text-accent transition-transform duration-200 group-open:rotate-90"
+                  aria-hidden="true"
+                >
+                  ▶
+                </span>
+                <span className="flex-1">
+                  <RichText richText={value?.rich_text} />
+                </span>
+              </h3>
             </summary>
             <div className="px-4 pb-3 pt-2 space-y-3 border-t border-border/30 mt-2">
-              {children.map((child) => (
-                <NotionBlock key={child.id} block={child} isDark={isDark} />
-              ))}
+              {renderBlocks(children, isDark)}
             </div>
           </details>
         );
       }
       return (
-        <h2 className="text-3xl font-bold mt-6 mb-3">
+        <h3 className="mb-5 mt-14 text-2xl font-semibold leading-tight tracking-[-0.03em] md:text-3xl">
           <RichText richText={value?.rich_text} />
-        </h2>
+        </h3>
       );
 
     case 'heading_3':
       if (value?.is_toggleable && children.length > 0) {
         return (
           <details className="group my-4 rounded-lg border border-border/50 bg-muted/5 transition-all hover:bg-muted/10">
-            <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 text-xl font-semibold hover:bg-accent/5 rounded-lg transition-colors">
-              <span className="text-lg text-accent transition-transform duration-200 group-open:rotate-90 flex-shrink-0">
-                ▶
-              </span>
-              <span className="flex-1">
-                <RichText richText={value?.rich_text} />
-              </span>
+            <summary className="cursor-pointer list-none rounded-lg px-4 py-3 text-xl font-semibold transition-colors hover:bg-accent/5">
+              <h4 className="m-0 flex items-center gap-3 text-[inherit] font-[inherit] leading-[inherit]">
+                <span
+                  className="flex-shrink-0 text-lg text-accent transition-transform duration-200 group-open:rotate-90"
+                  aria-hidden="true"
+                >
+                  ▶
+                </span>
+                <span className="flex-1">
+                  <RichText richText={value?.rich_text} />
+                </span>
+              </h4>
             </summary>
             <div className="px-4 pb-3 pt-2 space-y-3 border-t border-border/30 mt-2">
-              {children.map((child) => (
-                <NotionBlock key={child.id} block={child} isDark={isDark} />
-              ))}
+              {renderBlocks(children, isDark)}
             </div>
           </details>
         );
       }
       return (
-        <h3 className="text-2xl font-semibold mt-5 mb-2">
+        <h4 className="mb-4 mt-10 text-xl font-semibold leading-snug tracking-[-0.02em] md:text-2xl">
           <RichText richText={value?.rich_text} />
-        </h3>
+        </h4>
       );
 
     case 'bulleted_list_item':
-      return (
-        <li className="ml-4">
-          <RichText richText={value?.rich_text} />
-        </li>
-      );
-
     case 'numbered_list_item':
       return (
-        <li className="ml-4">
+        <li className="pl-1 leading-8">
           <RichText richText={value?.rich_text} />
+          {children.length > 0 && renderBlocks(children, isDark, true)}
         </li>
       );
 
@@ -211,9 +262,7 @@ function NotionBlock({ block, isDark }: { block: NotionBlockType; isDark: boolea
           </summary>
           {children && children.length > 0 && (
             <div className="space-y-3 border-t border-border/50 px-4 py-4">
-              {children.map((child) => (
-                <NotionBlock key={child.id} block={child} isDark={isDark} />
-              ))}
+              {renderBlocks(children, isDark)}
             </div>
           )}
         </details>
@@ -311,11 +360,7 @@ function NotionBlock({ block, isDark }: { block: NotionBlockType; isDark: boolea
           <div className="flex-1">
             <RichText richText={value?.rich_text} />
             {children && children.length > 0 && (
-              <div className="mt-2 space-y-2">
-                {children.map((child) => (
-                  <NotionBlock key={child.id} block={child} isDark={isDark} />
-                ))}
-              </div>
+              <div className="mt-2 space-y-2">{renderBlocks(children, isDark)}</div>
             )}
           </div>
         </div>
@@ -324,20 +369,12 @@ function NotionBlock({ block, isDark }: { block: NotionBlockType; isDark: boolea
     case 'column_list':
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-6">
-          {children.map((child) => (
-            <NotionBlock key={child.id} block={child} isDark={isDark} />
-          ))}
+          {renderBlocks(children, isDark)}
         </div>
       );
 
     case 'column':
-      return (
-        <div className="space-y-3">
-          {children.map((child) => (
-            <NotionBlock key={child.id} block={child} isDark={isDark} />
-          ))}
-        </div>
-      );
+      return <div className="space-y-3">{renderBlocks(children, isDark)}</div>;
 
     case 'video':
       const videoSrc = value?.file?.url ? `/api/blocks/${block.id}/image` : value?.external?.url;

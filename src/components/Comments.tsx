@@ -23,7 +23,7 @@ export default function Comments() {
   );
 
   return (
-    <section className="mt-16">
+    <section className="mt-20 border-t border-border pt-12">
       <Giscus
         id="comments"
         repo={config.repo as `${string}/${string}`}

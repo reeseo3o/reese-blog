@@ -88,10 +88,10 @@ export default async function BlogDetailPage({ params }: Props) {
   });
 
   return (
-    <article className="py-16 px-6">
-      <div className="max-w-4xl mx-auto">
-        <header className="mb-12">
-          <div className="flex items-center gap-2 text-sm text-muted mb-4">
+    <article className="px-6 py-14 md:py-20">
+      <div className="mx-auto max-w-5xl">
+        <header className="mb-14 max-w-4xl md:mb-16">
+          <div className="mb-5 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.08em] text-muted">
             {post.category && (
               <>
                 <span>{post.category}</span>
@@ -101,14 +101,23 @@ export default async function BlogDetailPage({ params }: Props) {
             <time dateTime={post.date}>{formattedDate}</time>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">{post.title}</h1>
+          <h1 className="text-4xl font-semibold leading-[1.08] tracking-[-0.045em] md:text-6xl">
+            {post.title}
+          </h1>
 
-          {post.description && <p className="text-xl text-muted">{post.description}</p>}
+          {post.description && (
+            <p className="mt-7 max-w-3xl text-lg leading-relaxed text-muted md:text-xl">
+              {post.description}
+            </p>
+          )}
 
           {post.tags && post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-6">
+            <div className="mt-7 flex flex-wrap gap-2">
               {post.tags.map((tag) => (
-                <span key={tag} className="text-sm px-3 py-1 rounded-full bg-accent/10 text-accent">
+                <span
+                  key={tag}
+                  className="rounded-full border border-border px-3 py-1 font-mono text-xs text-muted"
+                >
                   #{tag}
                 </span>
               ))}
@@ -116,13 +125,13 @@ export default async function BlogDetailPage({ params }: Props) {
           )}
         </header>
 
-        <hr className="border-border mb-12" />
+        <hr className="mb-14 border-border md:mb-16" />
 
-        <div className="prose prose-lg dark:prose-invert max-w-none">
+        <div className="mx-auto max-w-[72ch]">
           <NotionRenderer blocks={blocks} />
         </div>
 
-        <div className="max-w-4xl mx-auto">
+        <div className="mx-auto max-w-[72ch]">
           <Comments />
         </div>
       </div>
